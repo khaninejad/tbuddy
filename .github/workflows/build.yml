@@ -56,26 +56,28 @@ jobs:
         pip install pyinstaller
         pyinstaller --onefile gui.py
 
-        # Move the installer to a temp directory for easier access
-        if [ "${{ matrix.os }}" == "ubuntu-latest" ] || [ "${{ matrix.os }}" == "macos-latest" ]; then
-            mv dist/gui /tmp/gui-installer  # For Linux/macOS
+        # Move the installer to a temp directory for easier access and rename with correct extension
+        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            mv dist/gui /tmp/tbuddy-installer-ubuntu  # For Linux
+        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            mv dist/gui /tmp/tbuddy-installer-macos  # For macOS
         fi
       shell: bash
 
     - name: Build installer for Windows
       if: matrix.os == 'windows-latest'
       run: |
-        Move-Item -Path dist\gui.exe -Destination C:\temp\gui-installer.exe
+        Move-Item -Path dist\gui.exe -Destination C:\temp\tbuddy-installer-windows.exe
       shell: pwsh
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: bot-installer-${{ matrix.os }}
+        name: tbuddy-installer-${{ matrix.os }}
         path: |
-          ${{ matrix.os == 'ubuntu-latest' && '/tmp/gui-installer' || '' }}
-          ${{ matrix.os == 'windows-latest' && 'C:\\temp\\gui-installer.exe' || '' }}
-          ${{ matrix.os == 'macos-latest' && '/tmp/gui-installer' || '' }}
+          ${{ matrix.os == 'ubuntu-latest' && '/tmp/tbuddy-installer-ubuntu' || '' }}
+          ${{ matrix.os == 'windows-latest' && 'C:\\temp\\tbuddy-installer-windows.exe' || '' }}
+          ${{ matrix.os == 'macos-latest' && '/tmp/tbuddy-installer-macos' || '' }}
 
   release:
     needs: build
@@ -91,19 +93,19 @@ jobs:
     - name: Download Ubuntu artifact
       uses: actions/download-artifact@v3
       with:
-        name: bot-installer-ubuntu-latest
+        name: tbuddy-installer-ubuntu-latest
         path: ./downloads
 
     - name: Download Windows artifact
       uses: actions/download-artifact@v3
       with:
-        name: bot-installer-windows-latest
+        name: tbuddy-installer-windows-latest
         path: ./downloads
 
     - name: Download macOS artifact
       uses: actions/download-artifact@v3
       with:
-        name: bot-installer-macos-latest
+        name: tbuddy-installer-macos-latest
         path: ./downloads
 
     - name: Create GitHub Release
@@ -113,7 +115,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ needs.build.outputs.version }}
-        release_name: "Bot Release v${{ needs.build.outputs.version }}"
+        release_name: "tbuddy Release v${{ needs.build.outputs.version }}"
         body: |
           **Release version:** v${{ needs.build.outputs.version }}
         draft: false
@@ -125,8 +127,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./downloads/gui-installer
-        asset_name: gui-installer-ubuntu-v${{ needs.build.outputs.version }}
+        asset_path: ./downloads/tbuddy-installer-ubuntu
+        asset_name: tbuddy-installer-ubuntu-v${{ needs.build.outputs.version }}
         asset_content_type: application/octet-stream
       if: success()
 
@@ -136,8 +138,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./downloads/gui-installer
-        asset_name: gui-installer-macos-v${{ needs.build.outputs.version }}
+        asset_path: ./downloads/tbuddy-installer-macos
+        asset_name: tbuddy-installer-macos-v${{ needs.build.outputs.version }}
         asset_content_type: application/octet-stream
       if: success()
 
@@ -147,7 +149,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./downloads/gui-installer.exe
-        asset_name: gui-installer-windows-v${{ needs.build.outputs.version }}.exe
+        asset_path: ./downloads/tbuddy-installer-windows.exe
+        asset_name: tbuddy-installer-windows-v${{ needs.build.outputs.version }}.exe
         asset_content_type: application/octet-stream
       if: success()
