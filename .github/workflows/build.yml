@@ -33,7 +33,9 @@ jobs:
     - name: Extract Version
       id: get_version
       run: |
+        # Extract version from __version__.py
         echo "VERSION=$(python -c 'from __version__ import __version__; print(__version__)')" >> $GITHUB_ENV
+        echo "Version is $VERSION"
 
     - name: Build installer
       run: |
@@ -71,19 +73,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Download Artifacts from Ubuntu
+    # Download artifacts from each OS
+    - name: Download Ubuntu artifact
       if: matrix.os == 'ubuntu-latest'
       uses: actions/download-artifact@v3
       with:
         name: bot-installer-ubuntu-latest
 
-    - name: Download Artifacts from Windows
+    - name: Download Windows artifact
       if: matrix.os == 'windows-latest'
       uses: actions/download-artifact@v3
       with:
         name: bot-installer-windows-latest
 
-    - name: Download Artifacts from macOS
+    - name: Download macOS artifact
       if: matrix.os == 'macos-latest'
       uses: actions/download-artifact@v3
       with:
@@ -95,20 +98,21 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ env.VERSION }}
+        tag_name: v${{ env.VERSION }}  # Use the unique version number as the tag
         release_name: "Bot Release v${{ env.VERSION }}"
         body: |
           **Release version:** v${{ env.VERSION }}
         draft: false
         prerelease: false
 
+    # Upload release assets
     - name: Upload Ubuntu/MacOS release assets
       if: ${{ matrix.os != 'windows-latest' }}
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: /tmp/gui-installer  # Adjust this path for non-Windows
-        asset_name: gui-installer-${{ matrix.os }}-${{ env.VERSION }}
+        asset_path: /tmp/gui-installer  # For Linux/macOS
+        asset_name: gui-installer-${{ matrix.os }}-v${{ env.VERSION }}
         asset_content_type: application/octet-stream
 
     - name: Upload Windows release assets
@@ -117,5 +121,5 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: C:\temp\gui-installer.exe  # For Windows
-        asset_name: gui-installer-windows-${{ env.VERSION }}.exe
+        asset_name: gui-installer-windows-v${{ env.VERSION }}.exe
         asset_content_type: application/octet-stream
