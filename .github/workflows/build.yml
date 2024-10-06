@@ -33,15 +33,20 @@ jobs:
       run: |
         pip install pyinstaller
         pyinstaller --onefile gui.py  # Adjust if your entry point is different
-        
+
         # Move the installer to a temp directory
-        if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
             mv dist/gui /tmp/gui-installer  # For Linux
-        elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            mv dist/gui.exe /tmp/gui-installer.exe  # For Windows
-        elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
             mv dist/gui /tmp/gui-installer  # For macOS
         fi
+      shell: bash  # Use Bash shell for this step
+
+    - name: Build installer for Windows
+      if: matrix.os == 'windows-latest'  # Condition to run only on Windows
+      run: |
+        mv dist/gui.exe C:\temp\gui-installer.exe  # Move the installer to a temp directory
+      shell: pwsh  # Use PowerShell shell for this step
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
@@ -49,5 +54,5 @@ jobs:
         name: bot-installer-${{ matrix.os }}
         path: |
           ${{ matrix.os == 'ubuntu-latest' && '/tmp/gui-installer' || '' }}
-          ${{ matrix.os == 'windows-latest' && '/tmp/gui-installer.exe' || '' }}
+          ${{ matrix.os == 'windows-latest' && 'C:\\temp\\gui-installer.exe' || '' }}
           ${{ matrix.os == 'macos-latest' && '/tmp/gui-installer' || '' }}
