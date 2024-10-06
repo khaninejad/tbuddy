@@ -42,18 +42,16 @@ jobs:
         pip install pyinstaller
         pyinstaller --onefile gui.py
 
-        # Move the installer to a temp directory for Ubuntu/Mac
-        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            mv dist/gui /tmp/gui-installer  # For Linux
-        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            mv dist/gui /tmp/gui-installer  # For macOS
+        # Move the installer to a temp directory
+        if [ "${{ matrix.os }}" == "ubuntu-latest" ] || [ "${{ matrix.os }}" == "macos-latest" ]; then
+            mv dist/gui /tmp/gui-installer  # For Linux and macOS
         fi
       shell: bash
 
     - name: Build installer for Windows
       if: matrix.os == 'windows-latest'
       run: |
-        mv dist/gui.exe C:\temp\gui-installer.exe
+        Move-Item -Path dist\gui.exe -Destination C:\temp\gui-installer.exe
       shell: pwsh
 
     - name: Upload Artifacts
@@ -75,22 +73,22 @@ jobs:
 
     # Download artifacts from each OS
     - name: Download Ubuntu artifact
-      if: matrix.os == 'ubuntu-latest'
       uses: actions/download-artifact@v3
       with:
         name: bot-installer-ubuntu-latest
+      if: success() && always()
 
     - name: Download Windows artifact
-      if: matrix.os == 'windows-latest'
       uses: actions/download-artifact@v3
       with:
         name: bot-installer-windows-latest
+      if: success() && always()
 
     - name: Download macOS artifact
-      if: matrix.os == 'macos-latest'
       uses: actions/download-artifact@v3
       with:
         name: bot-installer-macos-latest
+      if: success() && always()
 
     - name: Create GitHub Release
       id: create_release
@@ -99,27 +97,13 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ env.VERSION }}  # Use the unique version number as the tag
-        release_name: "Bot Release v${{ env.VERSION }}"
+        release_name: "Release v${{ env.VERSION }}"
         body: |
           **Release version:** v${{ env.VERSION }}
         draft: false
         prerelease: false
 
-    # Upload release assets
+    # Upload release assets for Ubuntu/macOS
     - name: Upload Ubuntu/MacOS release assets
-      if: ${{ matrix.os != 'windows-latest' }}
       uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: /tmp/gui-installer  # For Linux/macOS
-        asset_name: gui-installer-${{ matrix.os }}-v${{ env.VERSION }}
-        asset_content_type: application/octet-stream
-
-    - name: Upload Windows release assets
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: C:\temp\gui-installer.exe  # For Windows
-        asset_name: gui-installer-windows-v${{ env.VERSION }}.exe
-        asset_content_type: application/octet-stream
+      if: success() && always() && startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'macos')
