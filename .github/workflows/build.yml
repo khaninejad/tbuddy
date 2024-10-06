@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     outputs:
-      version: ${{ steps.get_version.outputs.version }}
+      version: ${{ steps.extract_version_unix.outputs.version || steps.extract_version_windows.outputs.version }}
 
     steps:
     - name: Checkout code
@@ -33,23 +33,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Extract Version
-      id: get_version
+    - name: Extract Version (Linux/macOS)
+      id: extract_version_unix
+      if: runner.os != 'Windows'
       run: |
         VERSION=$(python -c "from __version__ import __version__; print(__version__)")
         echo "VERSION=${VERSION}"
         echo "::set-output name=version::${VERSION}"
       shell: bash
-      if: runner.os != 'Windows'
 
-    - name: Extract Version on Windows
-      id: get_version
+    - name: Extract Version (Windows)
+      id: extract_version_windows
+      if: runner.os == 'Windows'
       run: |
         $version = python -c "from __version__ import __version__; print(__version__)"
         echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
         Write-Output "::set-output name=version::$version"
       shell: pwsh
-      if: runner.os == 'Windows'
 
     - name: Build installer
       run: |
