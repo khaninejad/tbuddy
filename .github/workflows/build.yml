@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     outputs:
-      version: ${{ steps.get_version.outputs.VERSION }}
+      version: ${{ steps.get_version.outputs.version }}
 
     steps:
     - name: Checkout code
@@ -36,19 +36,29 @@ jobs:
     - name: Extract Version
       id: get_version
       run: |
+        VERSION=$(python -c "from __version__ import __version__; print(__version__)")
+        echo "VERSION=${VERSION}"
+        echo "::set-output name=version::${VERSION}"
+      shell: bash
+      if: runner.os != 'Windows'
+
+    - name: Extract Version on Windows
+      id: get_version
+      run: |
         $version = python -c "from __version__ import __version__; print(__version__)"
-        echo "VERSION=$version" >> $env:GITHUB_ENV
-        Write-Output "Version is $version"
+        echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+        Write-Output "::set-output name=version::$version"
       shell: pwsh
+      if: runner.os == 'Windows'
 
     - name: Build installer
       run: |
         pip install pyinstaller
         pyinstaller --onefile gui.py
 
-        # Move the installer to a temp directory
+        # Move the installer to a temp directory for easier access
         if [ "${{ matrix.os }}" == "ubuntu-latest" ] || [ "${{ matrix.os }}" == "macos-latest" ]; then
-            mv dist/gui /tmp/gui-installer  # For Linux and macOS
+            mv dist/gui /tmp/gui-installer  # For Linux/macOS
         fi
       shell: bash
 
@@ -78,21 +88,23 @@ jobs:
     - name: Set Release Version
       run: echo "VERSION=${{ needs.build.outputs.version }}" >> $GITHUB_ENV
 
-    # Download artifacts from each OS
     - name: Download Ubuntu artifact
       uses: actions/download-artifact@v3
       with:
         name: bot-installer-ubuntu-latest
+        path: ./downloads
 
     - name: Download Windows artifact
       uses: actions/download-artifact@v3
       with:
         name: bot-installer-windows-latest
+        path: ./downloads
 
     - name: Download macOS artifact
       uses: actions/download-artifact@v3
       with:
         name: bot-installer-macos-latest
+        path: ./downloads
 
     - name: Create GitHub Release
       id: create_release
@@ -100,28 +112,36 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ env.VERSION }}  # Use the unique version number as the tag
-        release_name: "Bot Release v${{ env.VERSION }}"
+        tag_name: v${{ needs.build.outputs.version }}  # Use the unique version number as the tag
+        release_name: "Bot Release v${{ needs.build.outputs.version }}"
         body: |
-          **Release version:** v${{ env.VERSION }}
+          **Release version:** v${{ needs.build.outputs.version }}
         draft: false
         prerelease: false
 
-    # Upload release assets for Ubuntu/macOS
-    - name: Upload Ubuntu/MacOS release assets
+    - name: Upload Ubuntu release asset
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: /tmp/gui-installer  # For Linux/macOS
-        asset_name: gui-installer-${{ matrix.os }}-v${{ env.VERSION }}
+        asset_path: ./downloads/gui-installer  # For Ubuntu
+        asset_name: gui-installer-ubuntu-v${{ needs.build.outputs.version }}
         asset_content_type: application/octet-stream
-      if: ${{ success() && (matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest') }}
+      if: success()
 
-    - name: Upload Windows release assets
+    - name: Upload macOS release asset
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: C:\temp\gui-installer.exe  # For Windows
-        asset_name: gui-installer-windows-v${{ env.VERSION }}.exe
+        asset_path: ./downloads/gui-installer  # For macOS
+        asset_name: gui-installer-macos-v${{ needs.build.outputs.version }}
         asset_content_type: application/octet-stream
-      if: success() && matrix.os == 'windows-latest'
+      if: success()
+
+    - name: Upload Windows release asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./downloads/gui-installer.exe  # For Windows
+        asset_name: gui-installer-windows-v${{ needs.build.outputs.version }}.exe
+        asset_content_type: application/octet-stream
+      if: success()
