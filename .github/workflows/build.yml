@@ -60,7 +60,7 @@ jobs:
         if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
             mv dist/gui /tmp/tbuddy-installer-ubuntu  # For Linux
         elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            mv dist/gui /tmp/tbuddy-installer-macos  # For macOS
+            mv dist/gui ./tbuddy-installer-macos  # For macOS
         fi
       shell: bash
 
@@ -70,46 +70,20 @@ jobs:
         Move-Item -Path dist\gui.exe -Destination C:\temp\tbuddy-installer-windows.exe
       shell: pwsh
 
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: tbuddy-installer-${{ matrix.os }}
-        path: |
-          ${{ matrix.os == 'ubuntu-latest' && '/tmp/tbuddy-installer-ubuntu' || '' }}
-          ${{ matrix.os == 'windows-latest' && 'C:\\temp\\tbuddy-installer-windows.exe' || '' }}
-          ${{ matrix.os == 'macos-latest' && '/tmp/tbuddy-installer-macos' || '' }}
-
-  macos_package:
-    needs: build
-    runs-on: macos-latest
-    if: ${{ matrix.os == 'macos-latest' }}
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Download macOS artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: tbuddy-installer-macos
-        path: ./downloads
-
-    - name: Code-sign the application
+    - name: Package macOS installer
+      if: matrix.os == 'macos-latest'
       run: |
-        codesign --deep --force --verify --sign "Payam Khaninejad" ./downloads/tbuddy-installer-macos
-      shell: bash
+        # Code-sign the application binary
+        codesign --deep --force --verify --sign "Developer ID Application: Your Name (Your Team ID)" ./tbuddy-installer-macos
 
-    - name: Create the component package
-      run: |
-        pkgbuild --root ./downloads/tbuddy-installer-macos \
+        # Create a component package
+        pkgbuild --root ./tbuddy-installer-macos \
                  --identifier com.yourname.tbuddy \
-                 --version ${{ needs.build.outputs.version }} \
+                 --version ${{ steps.extract_version_unix.outputs.version }} \
                  --install-location /Applications \
-                 ./downloads/tbuddyComponent.pkg
-      shell: bash
+                 ./tbuddyComponent.pkg
 
-    - name: Create Distribution.xml
-      run: |
+        # Create Distribution.xml for productbuild
         echo '<?xml version="1.0" encoding="utf-8"?>' > Distribution.xml
         echo '<installer-gui-script minSpecVersion="1">' >> Distribution.xml
         echo '  <title>tbuddy Installer</title>' >> Distribution.xml
@@ -123,25 +97,27 @@ jobs:
         echo '  <choice id="tbuddy" title="tbuddy">' >> Distribution.xml
         echo '    <pkg-ref id="com.yourname.tbuddy.pkg"/>' >> Distribution.xml
         echo '  </choice>' >> Distribution.xml
-        echo '  <pkg-ref id="com.yourname.tbuddy.pkg" installKBytes="3000" version="${{ needs.build.outputs.version }}" auth="root">#tbuddyComponent.pkg</pkg-ref>' >> Distribution.xml
+        echo '  <pkg-ref id="com.yourname.tbuddy.pkg" installKBytes="3000" version="${{ steps.extract_version_unix.outputs.version }}" auth="root">#tbuddyComponent.pkg</pkg-ref>' >> Distribution.xml
         echo '</installer-gui-script>' >> Distribution.xml
 
-    - name: Build the final product package
-      run: |
+        # Build the final product package
         productbuild --distribution Distribution.xml \
-                     --package-path ./downloads \
+                     --package-path ./ \
                      --sign "Developer ID Installer: Your Name (Your Team ID)" \
-                     ./downloads/tbuddyInstaller.pkg
+                     ./tbuddyInstaller.pkg
       shell: bash
 
-    - name: Upload macOS pkg artifact
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: tbuddyInstaller.pkg
-        path: ./downloads/tbuddyInstaller.pkg
+        name: tbuddy-installer-${{ matrix.os }}
+        path: |
+          ${{ matrix.os == 'ubuntu-latest' && '/tmp/tbuddy-installer-ubuntu' || '' }}
+          ${{ matrix.os == 'windows-latest' && 'C:\\temp\\tbuddy-installer-windows.exe' || '' }}
+          ${{ matrix.os == 'macos-latest' && './tbuddyInstaller.pkg' || '' }}
 
   release:
-    needs: [build, macos_package]
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
@@ -154,19 +130,19 @@ jobs:
     - name: Download Ubuntu artifact
       uses: actions/download-artifact@v3
       with:
-        name: tbuddy-installer-ubuntu-latest
+        name: tbuddy-installer-ubuntu
         path: ./downloads
 
     - name: Download Windows artifact
       uses: actions/download-artifact@v3
       with:
-        name: tbuddy-installer-windows-latest
+        name: tbuddy-installer-windows
         path: ./downloads
 
     - name: Download macOS pkg artifact
       uses: actions/download-artifact@v3
       with:
-        name: tbuddyInstaller.pkg
+        name: tbuddy-installer-macos
         path: ./downloads
 
     - name: Create GitHub Release
