@@ -6,9 +6,11 @@ from tkinter import messagebox, simpledialog, Toplevel, Frame, scrolledtext, ttk
 import threading
 import json
 import time
+from __version__ import __version__
 
 CONFIG_FILE = "config.json"
 LICENSED = False  # Default to unlicensed
+print(f"Application Version: {__version__}")
 
 class BotGUI:
     def __init__(self, master):
