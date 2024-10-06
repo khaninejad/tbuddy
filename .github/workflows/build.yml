@@ -17,10 +17,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v4
       with:
         python-version: '3.12'
 
@@ -29,13 +29,22 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Fetch current version
+      id: get_version
+      run: |
+        VERSION=$(python -c "from __version__ import __version__; print(__version__)")
+        echo "Current version is $VERSION"
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
     - name: Bump version
       id: bump_version
       run: |
-        pip install bumpversion
-        bumpversion patch  # or minor/major based on your strategy
+        NEW_VERSION=$(bump2version patch --dry-run --list | grep "new_version" | cut -d'=' -f2 | tr -d ' ')
+        echo "New version is $NEW_VERSION"
+        echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+        bump2version patch  # Replace with minor/major as needed
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Required for bumpversion
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Required for bump2version
 
     - name: Build installer
       run: |
@@ -53,8 +62,8 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: v${{ steps.bump_version.outputs.new_version }}  # Use the new version here
-        release_name: Release ${{ steps.bump_version.outputs.new_version }}
+        tag_name: v${{ env.NEW_VERSION }}  # Use the new version here
+        release_name: Release ${{ env.NEW_VERSION }}
         body: |
           Changes in this release:
           - List your changes here
@@ -69,5 +78,5 @@ jobs:
       run: |
         git config --global user.name "Your Name"
         git config --global user.email "you@example.com"
-        git tag v${{ steps.bump_version.outputs.new_version }}
-        git push origin v${{ steps.bump_version.outputs.new_version }}
+        git tag v${{ env.NEW_VERSION }}
+        git push origin v${{ env.NEW_VERSION }}
