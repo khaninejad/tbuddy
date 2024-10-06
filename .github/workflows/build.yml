@@ -1,15 +1,13 @@
 name: Build, Package, and Release Bot
 
-# Trigger the workflow on push to the main branch and manual trigger
 on:
   push:
     branches:
       - main
   workflow_dispatch:  # Allows manual trigger of the workflow
 
-# Set permissions for GITHUB_TOKEN to allow creating releases
 permissions:
-  contents: write  # Grants the GITHUB_TOKEN write permissions for creating releases
+  contents: write  # Ensure the GITHUB_TOKEN has write permissions for releases
 
 jobs:
   build:
@@ -35,7 +33,6 @@ jobs:
     - name: Extract Version
       id: get_version
       run: |
-        # Extract version from the __version__.py file
         echo "VERSION=$(python -c 'from __version__ import __version__; print(__version__)')" >> $GITHUB_ENV
 
     - name: Build installer
@@ -67,19 +64,23 @@ jobs:
           ${{ matrix.os == 'macos-latest' && '/tmp/gui-installer' || '' }}
 
   release:
-    # Ensure the release job runs only after the build job
-    needs: build
+    needs: build  # Ensure release job runs after build
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Download Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: bot-installer-${{ matrix.os }}
+
     - name: Create GitHub Release
       id: create_release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Automatically provided token
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Provided by GitHub automatically
       with:
         tag_name: v${{ env.VERSION }}
         release_name: "Bot Release v${{ env.VERSION }}"
@@ -89,11 +90,11 @@ jobs:
         prerelease: false
 
     - name: Upload release assets for Ubuntu/MacOS
-      if: ${{ matrix.os != 'windows-latest' }}  # Skip for Windows
+      if: ${{ matrix.os != 'windows-latest' }}
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: /tmp/gui-installer
+        asset_path: /tmp/gui-installer  # Adjust if necessary after download
         asset_name: gui-installer-${{ matrix.os }}-${{ env.VERSION }}
         asset_content_type: application/octet-stream
 
@@ -102,6 +103,6 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: C:\temp\gui-installer.exe
+        asset_path: C:\temp\gui-installer.exe  # Adjust if necessary after download
         asset_name: gui-installer-windows-${{ env.VERSION }}.exe
         asset_content_type: application/octet-stream
