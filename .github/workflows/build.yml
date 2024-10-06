@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:  # Allows manual triggering of the workflow
 
 jobs:
   build:
@@ -18,10 +17,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3  # Updated to the latest version
+      uses: actions/checkout@v3  # Latest version of checkout
 
     - name: Set up Python
-      uses: actions/setup-python@v4  # Updated to the latest version
+      uses: actions/setup-python@v4  # Latest version of setup-python
       with:
         python-version: '3.12'
 
@@ -31,21 +30,21 @@ jobs:
         pip install -r requirements.txt
 
     - name: Extract Version
-      id: get_version  # This step will be referenced to get the version
+      id: extract_version
       run: |
-        # Extract version from the __version__.py file
-        echo "VERSION=$(python -c 'from __version__ import __version__; print(__version__)')" >> $GITHUB_ENV
+        version=$(python -c 'exec(open("__version__.py").read()); print(__version__)')
+        echo "VERSION=$version" >> $GITHUB_ENV
 
     - name: Build installer
       run: |
         pip install pyinstaller
         pyinstaller --onefile gui.py
 
-        # Move the installer to a temp directory
+        # Move the installer to a temp directory based on OS
         if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            mv dist/gui /tmp/gui-installer  # For Linux
+            mv dist/gui /tmp/gui-installer
         elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            mv dist/gui /tmp/gui-installer  # For macOS
+            mv dist/gui /tmp/gui-installer
         fi
       shell: bash  # Use Bash shell for this step
 
@@ -53,7 +52,7 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         mv dist/gui.exe C:\temp\gui-installer.exe
-      shell: pwsh  # Use PowerShell shell for Windows step
+      shell: pwsh  # Use PowerShell for Windows
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
@@ -65,40 +64,37 @@ jobs:
           ${{ matrix.os == 'macos-latest' && '/tmp/gui-installer' || '' }}
 
   release:
-    needs: build  # Ensure that build job finishes first
+    needs: build
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Create Git Tag
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git tag v${{ env.VERSION }}
+        git push origin v${{ env.VERSION }}
+
     - name: Create GitHub Release
-      id: create_release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub automatically provides this secret
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ env.VERSION }}
-        release_name: "Bot Release v${{ env.VERSION }}"
+        release_name: Release v${{ env.VERSION }}
         body: |
-          **Release version:** v${{ env.VERSION }}
-          Built on: ${{ matrix.os }}
+          ## Release v${{ env.VERSION }}
+          - Automatic release from GitHub Actions
         draft: false
         prerelease: false
 
-    - name: Upload release assets for Ubuntu/MacOS
-      if: ${{ matrix.os != 'windows-latest' }}  # Upload for non-Windows builds
+    - name: Upload Release Assets
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: /tmp/gui-installer
-        asset_name: gui-installer-${{ matrix.os }}-${{ env.VERSION }}
-        asset_content_type: application/octet-stream
-
-    - name: Upload release assets for Windows
-      if: matrix.os == 'windows-latest'  # Upload for Windows builds
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: C:\temp\gui-installer.exe
-        asset_name: gui-installer-windows-${{ env.VERSION }}.exe
-        asset_content_type: application/octet-stream
+        asset_path: path/to/your/built/installer
+        asset_name: installer-${{ matrix.os }}.zip
+        asset_content_type: application/zip
