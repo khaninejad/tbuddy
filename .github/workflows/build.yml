@@ -37,13 +37,8 @@ jobs:
       id: extract_version
       run: |
         # Extract version from __version__.py
-        if [ "${{ matrix.os }}" == "windows-latest" ]; then
-          $version = python -c "from __version__ import __version__; print(__version__)"
-          echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
-        else
-          VERSION=$(python -c "from __version__ import __version__; print(__version__)")
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-        fi
+        VERSION=$(python -c "from __version__ import __version__; print(__version__)")
+        echo "VERSION=${VERSION}" >> $GITHUB_ENV
         echo "::set-output name=version::$VERSION"
       shell: bash
 
@@ -128,7 +123,7 @@ jobs:
         
         # Code signing the app
         echo "Signing the application..."
-        codesign --deep --force --verify --verbose --sign "Payam Khaninejad" "$SOURCE_FOLDER_PATH"
+        codesign --deep --force --verify --verbose --sign "Developer ID Application: Your Name (Your Team ID)" "$SOURCE_FOLDER_PATH"
 
         # Create DMG file using create-dmg
         npm install -g create-dmg
