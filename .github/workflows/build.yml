@@ -17,10 +17,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3  # Updated to the latest version
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4  # Updated to the latest version
       with:
         python-version: '3.12'
 
@@ -31,23 +31,16 @@ jobs:
 
     - name: Build installer
       run: |
+        pip install pyinstaller
+        pyinstaller --onefile gui.py  # Adjust if your entry point is different
+        
+        # Move the installer to a temp directory
         if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            # For Linux
-            pip install pyinstaller
-            pyinstaller --onefile gui.py  # Adjust if your entry point is different
-            mv dist/gui /tmp/gui-installer  # Move the installer to a temp directory
-
+            mv dist/gui /tmp/gui-installer  # For Linux
         elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            # For Windows
-            pip install pyinstaller
-            pyinstaller --onefile gui.py
-            mv dist/gui.exe /tmp/gui-installer.exe  # Move the installer to a temp directory
-
+            mv dist/gui.exe /tmp/gui-installer.exe  # For Windows
         elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            # For macOS
-            pip install pyinstaller
-            pyinstaller --onefile gui.py
-            mv dist/gui /tmp/gui-installer  # Move the installer to a temp directory
+            mv dist/gui /tmp/gui-installer  # For macOS
         fi
 
     - name: Upload Artifacts
