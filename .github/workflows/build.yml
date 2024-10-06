@@ -51,33 +51,43 @@ jobs:
         Write-Output "::set-output name=version::$version"
       shell: pwsh
 
-    - name: Build installer
+    - name: Build installer (Linux/macOS)
+      if: matrix.os != 'windows-latest'
       run: |
         pip install pyinstaller
-        pyinstaller --onefile gui.py
+        pyinstaller --onefile --windowed --name "tbuddy" gui.py
 
-        # Move the installer to a temp directory for easier access and rename with correct extension
+        # Move the installer to a temporary directory for easier access
         if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            mv dist/gui /tmp/tbuddy-installer-ubuntu  # For Linux
+          mv dist/tbuddy /tmp/tbuddy-installer-linux
         elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            mv dist/gui /tmp/tbuddy-installer-macos  # For macOS
+          mv dist/tbuddy.app /tmp/tbuddy-installer-macos.app
         fi
       shell: bash
 
-    - name: Build installer for Windows
+    - name: Build installer (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        Move-Item -Path dist\gui.exe -Destination C:\temp\tbuddy-installer-windows.exe
+        pip install pyinstaller
+        pyinstaller --onefile --name "tbuddy" gui.py
+        Move-Item -Path dist\tbuddy.exe -Destination C:\temp\tbuddy-installer-windows.exe
       shell: pwsh
+
+    - name: Create dmg file for macOS
+      if: matrix.os == 'macos-latest'
+      run: |
+        npm install -g create-dmg
+        create-dmg /tmp/tbuddy-installer-macos.app /tmp/
+      shell: bash
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: tbuddy-installer-${{ matrix.os }}
         path: |
-          ${{ matrix.os == 'ubuntu-latest' && '/tmp/tbuddy-installer-ubuntu' || '' }}
+          ${{ matrix.os == 'ubuntu-latest' && '/tmp/tbuddy-installer-linux' || '' }}
           ${{ matrix.os == 'windows-latest' && 'C:\\temp\\tbuddy-installer-windows.exe' || '' }}
-          ${{ matrix.os == 'macos-latest' && '/tmp/tbuddy-installer-macos' || '' }}
+          ${{ matrix.os == 'macos-latest' && '/tmp/tbuddy-installer-macos.dmg' || '' }}
 
   release:
     needs: build
@@ -90,7 +100,7 @@ jobs:
     - name: Set Release Version
       run: echo "VERSION=${{ needs.build.outputs.version }}" >> $GITHUB_ENV
 
-    - name: Download Ubuntu artifact
+    - name: Download Linux artifact
       uses: actions/download-artifact@v3
       with:
         name: tbuddy-installer-ubuntu-latest
@@ -115,20 +125,20 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ needs.build.outputs.version }}
-        release_name: "tbuddy Release v${{ needs.build.outputs.version }}"
+        release_name: "Bot Release v${{ needs.build.outputs.version }}"
         body: |
           **Release version:** v${{ needs.build.outputs.version }}
         draft: false
         prerelease: false
 
-    - name: Upload Ubuntu release asset
+    - name: Upload Linux release asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./downloads/tbuddy-installer-ubuntu
-        asset_name: tbuddy-installer-ubuntu-v${{ needs.build.outputs.version }}
+        asset_path: ./downloads/tbuddy-installer-linux
+        asset_name: tbuddy-installer-linux-v${{ needs.build.outputs.version }}
         asset_content_type: application/octet-stream
       if: success()
 
@@ -138,8 +148,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./downloads/tbuddy-installer-macos
-        asset_name: tbuddy-installer-macos-v${{ needs.build.outputs.version }}
+        asset_path: ./downloads/tbuddy-installer-macos.dmg
+        asset_name: tbuddy-installer-macos-v${{ needs.build.outputs.version }}.dmg
         asset_content_type: application/octet-stream
       if: success()
 
