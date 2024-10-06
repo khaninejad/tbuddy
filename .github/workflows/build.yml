@@ -1,0 +1,60 @@
+name: Build and Package Bot
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'  # Specify your Python version
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt  # Ensure you have this file
+
+    - name: Build installer
+      run: |
+        if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            # For Linux
+            pip install pyinstaller
+            pyinstaller --onefile gui.py  # Adjust if your entry point is different
+            mv dist/gui /tmp/gui-installer  # Move the installer to a temp directory
+
+        elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            # For Windows
+            pip install pyinstaller
+            pyinstaller --onefile gui.py
+            mv dist/gui.exe /tmp/gui-installer.exe  # Move the installer to a temp directory
+
+        elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            # For macOS
+            pip install pyinstaller
+            pyinstaller --onefile gui.py
+            mv dist/gui /tmp/gui-installer  # Move the installer to a temp directory
+        fi
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: bot-installer-${{ matrix.os }}
+        path: |
+          ${{ matrix.os == 'ubuntu-latest' && '/tmp/gui-installer' || '' }}
+          ${{ matrix.os == 'windows-latest' && '/tmp/gui-installer.exe' || '' }}
+          ${{ matrix.os == 'macos-latest' && '/tmp/gui-installer' || '' }}

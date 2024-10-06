@@ -1,0 +1,9 @@
+colorama
+pystyle
+selenium
+requests
+python-dotenv
+openai
+psutil
+seleniumbase
+pyinstaller
