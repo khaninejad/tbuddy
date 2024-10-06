@@ -57,12 +57,48 @@ jobs:
         pip install pyinstaller
         pyinstaller --onefile gui.py
 
-        # Move the installer to a temp directory for easier access
+        # For Linux, move the executable to a temp directory
         if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
             mv dist/gui /tmp/tbuddy-installer-linux
-        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            mv dist/gui /tmp/tbuddy-installer-macos.app
         fi
+      shell: bash
+
+    - name: Build macOS .app bundle
+      if: matrix.os == 'macos-latest'
+      run: |
+        pip install pyinstaller
+        pyinstaller --onefile --name tbuddy-macos gui.py
+
+        # Create a proper .app bundle structure
+        mkdir -p /tmp/tbuddy-installer-macos.app/Contents/MacOS
+        mkdir -p /tmp/tbuddy-installer-macos.app/Contents/Resources
+
+        # Copy the built executable to the .app bundle
+        mv dist/tbuddy-macos /tmp/tbuddy-installer-macos.app/Contents/MacOS/tbuddy-macos
+
+        # Create a simple Info.plist file for the .app bundle
+        cat <<EOF > /tmp/tbuddy-installer-macos.app/Contents/Info.plist
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>CFBundleName</key>
+          <string>Tbuddy</string>
+          <key>CFBundleDisplayName</key>
+          <string>Tbuddy</string>
+          <key>CFBundleIdentifier</key>
+          <string>com.example.tbuddy</string>
+          <key>CFBundleVersion</key>
+          <string>1.0</string>
+          <key>CFBundleExecutable</key>
+          <string>tbuddy-macos</string>
+          <key>CFBundlePackageType</key>
+          <string>APPL</string>
+          <key>NSHighResolutionCapable</key>
+          <true/>
+        </dict>
+        </plist>
+        EOF
       shell: bash
 
     - name: Create dmg file for macOS
