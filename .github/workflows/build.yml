@@ -45,6 +45,7 @@ jobs:
             mv dist/gui /tmp/gui-installer  # For Linux
         elif [ "${{ matrix.os }}" == "macos-latest" ]; then
             mv dist/gui /tmp/gui-installer  # For macOS
+        fi
       shell: bash
 
     - name: Build installer for Windows
@@ -56,7 +57,7 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: bot-installer-${{ matrix.os }}  # Use OS-specific names
+        name: bot-installer-${{ matrix.os }}
         path: |
           ${{ matrix.os == 'ubuntu-latest' && '/tmp/gui-installer' || '' }}
           ${{ matrix.os == 'windows-latest' && 'C:\\temp\\gui-installer.exe' || '' }}
@@ -70,7 +71,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Download each artifact by OS
     - name: Download Artifacts from Ubuntu
       if: matrix.os == 'ubuntu-latest'
       uses: actions/download-artifact@v3
@@ -102,7 +102,6 @@ jobs:
         draft: false
         prerelease: false
 
-    # Upload release assets for each platform
     - name: Upload Ubuntu/MacOS release assets
       if: ${{ matrix.os != 'windows-latest' }}
       uses: actions/upload-release-asset@v1
