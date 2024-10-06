@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     outputs:
-      version: ${{ steps.extract_version.outputs.version }}
+      version: ${{ steps.extract_version_unix.outputs.version || steps.extract_version_windows.outputs.version }}
 
     steps:
     - name: Checkout code
@@ -33,36 +33,51 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Extract Version
-      id: extract_version
+    - name: Extract Version (Linux/macOS)
+      id: extract_version_unix
+      if: runner.os != 'Windows'
       run: |
-        # Extract version from __version__.py
         VERSION=$(python -c "from __version__ import __version__; print(__version__)")
-        echo "VERSION=${VERSION}" >> $GITHUB_ENV
-        echo "::set-output name=version::$VERSION"
+        echo "VERSION=${VERSION}"
+        echo "::set-output name=version::${VERSION}"
       shell: bash
+
+    - name: Extract Version (Windows)
+      id: extract_version_windows
+      if: runner.os == 'Windows'
+      run: |
+        $version = python -c "from __version__ import __version__; print(__version__)"
+        echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+        Write-Output "::set-output name=version::$version"
+      shell: pwsh
 
     - name: Build installer
       run: |
         pip install pyinstaller
         pyinstaller --onefile gui.py
 
-        # Move the installer to a temp directory for easier access
-        if [ "${{ matrix.os }}" == "ubuntu-latest" ] || [ "${{ matrix.os }}" == "macos-latest" ]; then
-            mv dist/gui /tmp/tbuddy-installer  # For Linux/macOS
-        elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-            Move-Item -Path dist\gui.exe -Destination C:\temp\tbuddy-installer.exe
+        # Move the installer to a temp directory for easier access and rename with correct extension
+        if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+            mv dist/gui /tmp/tbuddy-installer-ubuntu  # For Linux
+        elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            mv dist/gui /tmp/tbuddy-installer-macos  # For macOS
         fi
       shell: bash
+
+    - name: Build installer for Windows
+      if: matrix.os == 'windows-latest'
+      run: |
+        Move-Item -Path dist\gui.exe -Destination C:\temp\tbuddy-installer-windows.exe
+      shell: pwsh
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: bot-installer-${{ matrix.os }}
+        name: tbuddy-installer-${{ matrix.os }}
         path: |
-          ${{ matrix.os == 'ubuntu-latest' && '/tmp/tbuddy-installer' || '' }}
-          ${{ matrix.os == 'windows-latest' && 'C:\\temp\\tbuddy-installer.exe' || '' }}
-          ${{ matrix.os == 'macos-latest' && '/tmp/tbuddy-installer' || '' }}
+          ${{ matrix.os == 'ubuntu-latest' && '/tmp/tbuddy-installer-ubuntu' || '' }}
+          ${{ matrix.os == 'windows-latest' && 'C:\\temp\\tbuddy-installer-windows.exe' || '' }}
+          ${{ matrix.os == 'macos-latest' && '/tmp/tbuddy-installer-macos' || '' }}
 
   release:
     needs: build
@@ -78,67 +93,20 @@ jobs:
     - name: Download Ubuntu artifact
       uses: actions/download-artifact@v3
       with:
-        name: bot-installer-ubuntu-latest
+        name: tbuddy-installer-ubuntu-latest
         path: ./downloads
 
     - name: Download Windows artifact
       uses: actions/download-artifact@v3
       with:
-        name: bot-installer-windows-latest
+        name: tbuddy-installer-windows-latest
         path: ./downloads
 
     - name: Download macOS artifact
       uses: actions/download-artifact@v3
       with:
-        name: bot-installer-macos-latest
+        name: tbuddy-installer-macos-latest
         path: ./downloads
-
-    - name: Build and Code Sign the App for macOS
-      if: matrix.os == 'macos-latest'
-      run: |
-        APP_NAME="tbuddy-installer"
-        DMG_FILE_NAME="${APP_NAME}-Installer.dmg"
-        VOLUME_NAME="${APP_NAME} Installer"
-        SOURCE_FOLDER_PATH="/tmp/${APP_NAME}.app"
-
-        # Create a temporary directory for the application
-        mkdir -p "$SOURCE_FOLDER_PATH/Contents/MacOS"
-        cp ./downloads/tbuddy-installer "$SOURCE_FOLDER_PATH/Contents/MacOS/"
-
-        # Create Info.plist file for the application
-        echo '<?xml version="1.0" encoding="UTF-8"?>' > "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo '<plist version="1.0">' >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo '<dict>' >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo '    <key>CFBundleExecutable</key>' >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo '    <string>tbuddy-installer</string>' >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo '    <key>CFBundleIdentifier</key>' >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo '    <string>com.yourname.tbuddy</string>' >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo '    <key>CFBundleName</key>' >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo '    <string>tbuddy-installer</string>' >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo '    <key>CFBundleVersion</key>' >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo "    <string>${{ needs.build.outputs.version }}</string>" >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo '</dict>' >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        echo '</plist>' >> "$SOURCE_FOLDER_PATH/Contents/Info.plist"
-        
-        # Code signing the app
-        echo "Signing the application..."
-        codesign --deep --force --verify --verbose --sign "Developer ID Application: Your Name (Your Team ID)" "$SOURCE_FOLDER_PATH"
-
-        # Create DMG file using create-dmg
-        npm install -g create-dmg
-
-        echo "Creating DMG..."
-        create-dmg "$SOURCE_FOLDER_PATH" "./downloads/$DMG_FILE_NAME" --overwrite \
-          --volname "$VOLUME_NAME" \
-          --background "installer_background.png" \
-          --window-pos 200 120 \
-          --window-size 800 400 \
-          --icon-size 100 \
-          --icon "$SOURCE_FOLDER_PATH" 200 190 \
-          --hide-extension "$SOURCE_FOLDER_PATH" \
-          --app-drop-link 600 185
-      shell: bash
 
     - name: Create GitHub Release
       id: create_release
@@ -147,7 +115,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ needs.build.outputs.version }}
-        release_name: "Bot Release v${{ needs.build.outputs.version }}"
+        release_name: "tbuddy Release v${{ needs.build.outputs.version }}"
         body: |
           **Release version:** v${{ needs.build.outputs.version }}
         draft: false
@@ -159,7 +127,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./downloads/tbuddy-installer
+        asset_path: ./downloads/tbuddy-installer-ubuntu
         asset_name: tbuddy-installer-ubuntu-v${{ needs.build.outputs.version }}
         asset_content_type: application/octet-stream
       if: success()
@@ -170,8 +138,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./downloads/${{ needs.build.outputs.version }}-Installer.dmg
-        asset_name: tbuddy-installer-macos-v${{ needs.build.outputs.version }}.dmg
+        asset_path: ./downloads/tbuddy-installer-macos
+        asset_name: tbuddy-installer-macos-v${{ needs.build.outputs.version }}
         asset_content_type: application/octet-stream
       if: success()
 
@@ -181,7 +149,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./downloads/tbuddy-installer.exe
+        asset_path: ./downloads/tbuddy-installer-windows.exe
         asset_name: tbuddy-installer-windows-v${{ needs.build.outputs.version }}.exe
         asset_content_type: application/octet-stream
       if: success()
