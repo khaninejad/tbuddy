@@ -36,10 +36,10 @@ jobs:
     - name: Extract Version
       id: get_version
       run: |
-        # Extract version from __version__.py
-        VERSION=$(python -c 'from __version__ import __version__; print(__version__)')
-        echo "VERSION=${VERSION}"
-        echo "::set-output name=VERSION::${VERSION}"
+        $version = python -c "from __version__ import __version__; print(__version__)"
+        echo "VERSION=$version" >> $env:GITHUB_ENV
+        Write-Output "Version is $version"
+      shell: pwsh
 
     - name: Build installer
       run: |
@@ -115,7 +115,7 @@ jobs:
         asset_path: /tmp/gui-installer  # For Linux/macOS
         asset_name: gui-installer-${{ matrix.os }}-v${{ env.VERSION }}
         asset_content_type: application/octet-stream
-      if: success() && always()
+      if: ${{ success() && (matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest') }}
 
     - name: Upload Windows release assets
       uses: actions/upload-release-asset@v1
@@ -124,4 +124,4 @@ jobs:
         asset_path: C:\temp\gui-installer.exe  # For Windows
         asset_name: gui-installer-windows-v${{ env.VERSION }}.exe
         asset_content_type: application/octet-stream
-      if: success() && always()
+      if: success() && matrix.os == 'windows-latest'
