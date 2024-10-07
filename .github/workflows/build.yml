@@ -46,12 +46,20 @@ jobs:
           pyinstaller --onefile --windowed --name=tbuddy --target-arch x86_64 gui.py
         shell: bash
 
+      # Step to check the contents of the dist folder after building
+      - name: Check dist folder contents (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          echo "Listing contents of dist folder"
+          ls -R dist/
+        shell: bash
+
       - name: Upload MacOS Installer
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v3
         with:
           name: tbuddy-installer-macos
-          path: ./dist/tbuddy.app  # Upload the .app bundle from the correct location
+          path: ./dist/tbuddy.app  # Adjust if needed based on ls output
 
       - name: Build installer (Windows and Ubuntu)
         if: matrix.os != 'macos-latest'
