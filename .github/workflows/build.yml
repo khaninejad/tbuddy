@@ -39,10 +39,11 @@ jobs:
           echo "::set-output name=version::${VERSION}"
         shell: bash
 
-      - name: Build installer
+      - name: Build installer (macOS)
+        if: matrix.os == 'macos-latest'
         run: |
           pip install pyinstaller
-          pyinstaller --onefile gui.py
+          pyinstaller --onefile --windowed --name=tbuddy --target-arch universal2 gui.py
         shell: bash
 
       - name: Upload MacOS Installer
@@ -50,7 +51,14 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: tbuddy-installer-macos
-          path: ./dist/gui  # adjust path to the generated binary
+          path: ./dist/tbuddy.app  # adjust path to the generated .app bundle
+
+      - name: Build installer (Windows and Ubuntu)
+        if: matrix.os != 'macos-latest'
+        run: |
+          pip install pyinstaller
+          pyinstaller --onefile gui.py
+        shell: bash
 
       - name: Upload Windows Installer
         if: matrix.os == 'windows-latest'
@@ -90,7 +98,7 @@ jobs:
 
       - name: Create DMG Package
         run: |
-          create-dmg './downloads/gui' ./tbuddy-installer-dmg --overwrite --identity=""
+          create-dmg './downloads/tbuddy.app' ./tbuddy-installer-dmg --overwrite
         shell: bash
 
       - name: Upload macOS dmg artifact
