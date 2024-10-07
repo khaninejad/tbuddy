@@ -46,6 +46,10 @@ jobs:
           # Install PyInstaller and build the .app
           pip install pyinstaller
           pyinstaller --onefile --windowed --name=tbuddy --target-arch x86_64 gui.py
+
+          mkdir -p dist/dmg
+          rm -rf dist/dmg/*
+          cp -r "dist/tbuddy.app" dist/dmg
           
           # Verify the contents of the dist folder
           echo "Listing contents of dist folder"
@@ -54,11 +58,18 @@ jobs:
           # Install create-dmg tool
           npm install --global create-dmg
 
-          # Ensure the output directory exists
-          mkdir -p dist
-
           # Create the DMG, with a specific title to avoid versioning issues
-          create-dmg ./dist/tbuddy.app ./dist --dmg-title="tbuddyInstaller"
+          create-dmg \
+            --volname "tbuddy" \
+            --volicon "tbuddy.ico" \
+            --window-pos 200 120 \
+            --window-size 600 300 \
+            --icon-size 100 \
+            --icon "tbuddy.app" 175 120 \
+            --hide-extension "tbuddy.app" \
+            --app-drop-link 425 120 \
+            "dist/tbuddy.dmg" \
+            "dist/dmg/"
 
           # Verify the DMG was created
           echo "Listing contents of dist after DMG creation"
