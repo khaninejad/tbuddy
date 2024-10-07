@@ -80,37 +80,45 @@ jobs:
         name: tbuddy-installer-macos
         path: ./downloads
 
-    - name: Set up Certificate and Key for Signing
-      run: |
-        echo "${{ secrets.MACOS_CERTIFICATE_CER }}" | base64 --decode > developer_id_certificate.pem
-        echo "${{ secrets.MACOS_CERTIFICATE_KEY }}" | base64 --decode > developer_id_key.pem
-        security create-keychain -p "" build.keychain
-
-        # Import the certificate if it doesn't exist
-        if security find-certificate -c "Developer ID Installer" ~/Library/Keychains/build.keychain > /dev/null 2>&1; then
-          echo "Certificate already exists in the keychain, skipping import."
-        else
-          echo "Certificate not found. Importing certificate."
-          if ! security import developer_id_certificate.pem -k ~/Library/Keychains/build.keychain -T /usr/bin/codesign; then
-            echo "Error importing certificate: Check format and encoding."
-            exit 1
+        - name: Set up Certificate and Key for Signing
+        run: |
+          echo "${{ secrets.MACOS_CERTIFICATE_CER }}" | base64 --decode > developer_id_certificate.pem
+          echo "${{ secrets.MACOS_CERTIFICATE_KEY }}" | base64 --decode > developer_id_key.pem
+          security create-keychain -p "" build.keychain
+  
+          # Import the certificate if it doesn't exist
+          if security find-certificate -c "Developer ID Installer" ~/Library/Keychains/build.keychain > /dev/null 2>&1; then
+            echo "Certificate already exists in the keychain, skipping import."
+          else
+            echo "Certificate not found. Importing certificate."
+            if ! security import developer_id_certificate.pem -k ~/Library/Keychains/build.keychain -T /usr/bin/codesign; then
+              echo "Error importing certificate: Check format and encoding."
+              exit 1
+            fi
           fi
-        fi
-
-        # Import the key if it doesn't exist
-        if security find-generic-password -a "Developer ID Installer Key" -l "Developer ID Installer Key" ~/Library/Keychains/build.keychain > /dev/null 2>&1; then
-          echo "Key already exists in the keychain, skipping import."
-        else
-          echo "Key not found. Importing key."
-          if ! security import developer_id_key.pem -k ~/Library/Keychains/build.keychain -P "${{ secrets.MACOS_CERTIFICATE_KEY_PASSWORD }}" -T /usr/bin/codesign -A; then
-            echo "Error importing key: Check format and encoding."
-            exit 1
+  
+          # Import the key if it doesn't exist
+          if security find-generic-password -a "Developer ID Installer Key" -l "Developer ID Installer Key" ~/Library/Keychains/build.keychain > /dev/null 2>&1; then
+            echo "Key already exists in the keychain, skipping import."
+          else
+            echo "Key not found. Importing key."
+            if ! security import developer_id_key.pem -k ~/Library/Keychains/build.keychain -P "${{ secrets.MACOS_CERTIFICATE_KEY_PASSWORD }}" -T /usr/bin/codesign -A; then
+              echo "Key import failed. Attempting cleanup..."
+              
+              # Find and delete the existing key
+              security delete-generic-password -a "Developer ID Installer Key" -l "Developer ID Installer Key" ~/Library/Keychains/build.keychain
+              
+              echo "Attempting to import key again..."
+              if ! security import developer_id_key.pem -k ~/Library/Keychains/build.keychain -P "${{ secrets.MACOS_CERTIFICATE_KEY_PASSWORD }}" -T /usr/bin/codesign -A; then
+                echo "Error importing key after cleanup: Check format and encoding."
+                exit 1
+              fi
+            fi
           fi
-        fi
-
-        # Allow codesign to access the keychain
-        security set-key-partition-list -S apple-tool:,apple: -s -k "" ~/Library/Keychains/build.keychain
-      shell: bash            
+  
+          # Allow codesign to access the keychain
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" ~/Library/Keychains/build.keychain
+        shell: bash              
 
     - name: Code-sign the application
       run: |
