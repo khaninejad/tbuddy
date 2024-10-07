@@ -39,39 +39,24 @@ jobs:
           echo "::set-output name=version::${VERSION}"
         shell: bash
 
-      # Build macOS app and create DMG
+      # Build macOS app (no DMG creation)
       - name: Build and package for macOS
         if: matrix.os == 'macos-latest'
         run: |
-          # Install PyInstaller and build the .app
           pip install pyinstaller
-          pyinstaller --onefile --windowed --name=tbuddy --target-arch x86_64 gui.py
-
-          mkdir -p dist/dmg
-          rm -rf dist/dmg/*
-          cp -r "dist/tbuddy.app" dist/dmg
+          pyinstaller --onefile --windowed --name=tbuddy gui.py
           
           # Verify the contents of the dist folder
           echo "Listing contents of dist folder"
           ls -R dist/
-          
-          # Install create-dmg tool
-          npm install --global create-dmg
-
-          # Create the DMG, with a specific title to avoid versioning issues
-          create-dmg ./dist/tbuddy.app ./dist --dmg-title="tbuddyInstaller"
-
-          # Verify the DMG was created
-          echo "Listing contents of dist after DMG creation"
-          ls -R dist/
         shell: bash
 
-      - name: Upload macOS DMG
+      - name: Upload macOS App
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v3
         with:
-          name: tbuddyInstaller-macos.dmg
-          path: ./dist/tbuddyInstaller.dmg
+          name: tbuddy-macos
+          path: ./dist/tbuddy.app
 
       # Build installers for Windows and Ubuntu
       - name: Build installer (Windows and Ubuntu)
@@ -118,10 +103,10 @@ jobs:
           name: tbuddy-installer-windows
           path: ./downloads
 
-      - name: Download macOS DMG artifact
+      - name: Download macOS artifact
         uses: actions/download-artifact@v3
         with:
-          name: tbuddyInstaller-macos.dmg
+          name: tbuddy-macos
           path: ./downloads
 
       - name: Create GitHub Release
@@ -153,8 +138,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./downloads/tbuddyInstaller-macos.dmg
-          asset_name: tbuddyInstaller-macos-v${{ needs.build.outputs.version }}.dmg
+          asset_path: ./downloads/tbuddy-macos
+          asset_name: tbuddy-macos-v${{ needs.build.outputs.version }}.app
           asset_content_type: application/octet-stream
 
       - name: Upload Windows release asset
