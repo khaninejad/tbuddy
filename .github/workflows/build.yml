@@ -53,10 +53,13 @@ jobs:
           
           # Install create-dmg tool
           npm install --global create-dmg
-          
-          # Create the DMG
-          create-dmg ./dist/tbuddy.app ./dist/tbuddyInstaller.dmg --overwrite
-          
+
+          # Ensure the output directory exists
+          mkdir -p dist
+
+          # Create the DMG, with a specific title to avoid versioning issues
+          create-dmg ./dist/tbuddy.app ./dist --dmg-title="tbuddyInstaller"
+
           # Verify the DMG was created
           echo "Listing contents of dist after DMG creation"
           ls -R dist/
