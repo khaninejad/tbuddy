@@ -17,75 +17,75 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Extract Version (Linux/macOS)
-      id: extract_version_unix
-      if: runner.os != 'Windows'
-      run: |
-        VERSION=$(python -c "from __version__ import __version__; print(__version__)")
-        echo "VERSION=${VERSION}"
-        echo "::set-output name=version::${VERSION}"
-      shell: bash
+      - name: Extract Version (Linux/macOS)
+        id: extract_version_unix
+        if: runner.os != 'Windows'
+        run: |
+          VERSION=$(python -c "from __version__ import __version__; print(__version__)")
+          echo "VERSION=${VERSION}"
+          echo "::set-output name=version::${VERSION}"
+        shell: bash
 
-    - name: Build installer
-      run: |
-        pip install pyinstaller
-        pyinstaller --onefile gui.py
-      shell: bash
+      - name: Build installer
+        run: |
+          pip install pyinstaller
+          pyinstaller --onefile gui.py
+        shell: bash
 
-    - name: Upload MacOS Installer
-      if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v3
-      with:
-        name: tbuddy-installer-macos
-        path: ./dist/gui  # adjust path to the generated binary
+      - name: Upload MacOS Installer
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: tbuddy-installer-macos
+          path: ./dist/gui  # adjust path to the generated binary
 
-    - name: Upload Windows Installer
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v3
-      with:
-        name: tbuddy-installer-windows
-        path: ./dist/gui.exe  # adjust path to the generated binary
+      - name: Upload Windows Installer
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: tbuddy-installer-windows
+          path: ./dist/gui.exe  # adjust path to the generated binary
 
-    - name: Upload Ubuntu Installer
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3
-      with:
-        name: tbuddy-installer-ubuntu
-        path: ./dist/gui  # adjust path to the generated binary
+      - name: Upload Ubuntu Installer
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: tbuddy-installer-ubuntu
+          path: ./dist/gui  # adjust path to the generated binary
 
   macos_package:
     needs: build
     runs-on: macos-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Download macOS artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: tbuddy-installer-macos
-        path: ./downloads
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: tbuddy-installer-macos
+          path: ./downloads
 
-    - name: Set up Certificate and Key for Signing
-      run: |
+      - name: Set up Certificate and Key for Signing
+        run: |
           echo "${{ secrets.MACOS_CERTIFICATE_CER }}" | base64 --decode > developer_id_certificate.pem
           echo "${{ secrets.MACOS_CERTIFICATE_KEY }}" | base64 --decode > developer_id_key.pem
           security create-keychain -p "" build.keychain
-  
+
           # Import the certificate if it doesn't exist
           if security find-certificate -c "Developer ID Installer" ~/Library/Keychains/build.keychain > /dev/null 2>&1; then
             echo "Certificate already exists in the keychain, skipping import."
@@ -96,7 +96,7 @@ jobs:
               exit 1
             fi
           fi
-  
+
           # Import the key if it doesn't exist
           if security find-generic-password -a "Developer ID Installer Key" -l "Developer ID Installer Key" ~/Library/Keychains/build.keychain > /dev/null 2>&1; then
             echo "Key already exists in the keychain, skipping import."
@@ -104,10 +104,10 @@ jobs:
             echo "Key not found. Importing key."
             if ! security import developer_id_key.pem -k ~/Library/Keychains/build.keychain -P "${{ secrets.MACOS_CERTIFICATE_KEY_PASSWORD }}" -T /usr/bin/codesign -A; then
               echo "Key import failed. Attempting cleanup..."
-              
+
               # Find and delete the existing key
               security delete-generic-password -a "Developer ID Installer Key" -l "Developer ID Installer Key" ~/Library/Keychains/build.keychain
-              
+
               echo "Attempting to import key again..."
               if ! security import developer_id_key.pem -k ~/Library/Keychains/build.keychain -P "${{ secrets.MACOS_CERTIFICATE_KEY_PASSWORD }}" -T /usr/bin/codesign -A; then
                 echo "Error importing key after cleanup: Check format and encoding."
@@ -115,120 +115,110 @@ jobs:
               fi
             fi
           fi
-  
+
           # Allow codesign to access the keychain
           security set-key-partition-list -S apple-tool:,apple: -s -k "" ~/Library/Keychains/build.keychain
-    shell: bash              
+        shell: bash      
 
-    - name: Code-sign the application
-      run: |
-        codesign --deep --force --verify --sign "Payam Khaninejad" ./downloads/tbuddy-installer-macos
-      shell: bash
+      - name: Code-sign the application
+        run: |
+          codesign --deep --force --verify --sign "Developer ID Application: Your Name" ./downloads/tbuddy-installer-macos
+        shell: bash
 
-    - name: Package macOS installer
-      run: |
-        pkgbuild --root ./downloads/tbuddy-installer-macos \
-                 --identifier com.yourname.tbuddy \
-                 --version ${{ needs.build.outputs.version }} \
-                 --install-location /Applications \
-                 ./tbuddyComponent.pkg
+      - name: Package macOS installer
+        run: |
+          pkgbuild --root ./downloads/tbuddy-installer-macos \
+                   --identifier com.yourname.tbuddy \
+                   --version ${{ needs.build.outputs.version }} \
+                   --install-location /Applications \
+                   ./tbuddyComponent.pkg
 
-        echo '<?xml version="1.0" encoding="utf-8"?>' > Distribution.xml
-        echo '<installer-gui-script minSpecVersion="1">' >> Distribution.xml
-        echo '  <title>tbuddy Installer</title>' >> Distribution.xml
-        echo '  <license file="license.txt"/>' >> Distribution.xml
-        echo '  <options customize="never" require-scripts="false"/>' >> Distribution.xml
-        echo '  <choices-outline>' >> Distribution.xml
-        echo '    <line choice="default">' >> Distribution.xml
-        echo '      <line choice="tbuddy"/>' >> Distribution.xml
-        echo '    </line>' >> Distribution.xml
-        echo '  </choices-outline>' >> Distribution.xml
-        echo '  <choice id="tbuddy" title="tbuddy">' >> Distribution.xml
-        echo '    <pkg-ref id="com.yourname.tbuddy.pkg"/>' >> Distribution.xml
-        echo '  </choice>' >> Distribution.xml
-        echo '  <pkg-ref id="com.yourname.tbuddy.pkg" installKBytes="3000" version="${{ needs.build.outputs.version }}" auth="root">#tbuddyComponent.pkg</pkg-ref>' >> Distribution.xml
-        echo '</installer-gui-script>' >> Distribution.xml
+          echo '<?xml version="1.0" encoding="utf-8"?>' > Distribution.xml
+          echo '<installer-gui-script minSpecVersion="1">' >> Distribution.xml
+          echo '  <title>tbuddy Installer</title>' >> Distribution.xml
+          echo '  <license file="license.txt"/>' >> Distribution.xml
+          echo '  <options customize="never" require-scripts="false"/>' >> Distribution.xml
+          echo '  <choices-outline>' >> Distribution.xml
+          echo '    <line choice="default">' >> Distribution.xml
+          echo '      <line choice="tbuddy"/>' >> Distribution.xml
+          echo '    </line>' >> Distribution.xml
+          echo '  </choices-outline>' >> Distribution.xml
+          echo '  <choice id="tbuddy" title="tbuddy">' >> Distribution.xml
+          echo '    <pkg-ref id="com.yourname.tbuddy.pkg"/>' >> Distribution.xml
+          echo '  </choice>' >> Distribution.xml
+          echo '  <pkg-ref id="com.yourname.tbuddy.pkg" installKBytes="3000" version="${{ needs.build.outputs.version }}" auth="root">#tbuddyComponent.pkg</pkg-ref>' >> Distribution.xml
+          echo '</installer-gui-script>' >> Distribution.xml
 
-        productbuild --distribution Distribution.xml \
-                     --package-path ./ \
-                     --sign "Developer ID Installer: Your Name" \
-                     ./tbuddyInstaller.pkg
-      shell: bash
+          productbuild --distribution Distribution.xml \
+                       --package-path ./ \
+                       --sign "Developer ID Installer: Your Name" \
+                       ./tbuddyInstaller.pkg
+        shell: bash
 
-    - name: Upload macOS pkg artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: tbuddyInstaller.pkg
-        path: ./tbuddyInstaller.pkg
+      - name: Upload macOS pkg artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: tbuddyInstaller.pkg
+          path: ./tbuddyInstaller.pkg
 
   release:
     needs: [build, macos_package]
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set Release Version
-      run: echo "VERSION=${{ needs.build.outputs.version }}" >> $GITHUB_ENV
+      - name: Set Release Version
+        run: echo "VERSION=${{ needs.build.outputs.version }}" >> $GITHUB_ENV
 
-    - name: Download Ubuntu artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: tbuddy-installer-ubuntu
-        path: ./downloads
+      - name: Download Ubuntu artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: tbuddy-installer-ubuntu
+          path: ./downloads
 
-    - name: Download Windows artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: tbuddy-installer-windows
-        path: ./downloads
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: tbuddy-installer-windows
+          path: ./downloads
 
-    - name: Download macOS pkg artifact
-      uses: actions/download-artifact@v3
-      with:
-        name: tbuddyInstaller.pkg
-        path: ./downloads
+      - name: Download macOS pkg artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: tbuddyInstaller.pkg
+          path: ./downloads
 
-    - name: Create GitHub Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ needs.build.outputs.version }}
-        release_name: "tbuddy Release v${{ needs.build.outputs.version }}"
-        body: |
-          **Release version:** v${{ needs.build.outputs.version }}
-        draft: false
-        prerelease: false
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.build.outputs.version }}
+          release_name: "tbuddy Release v${{ needs.build.outputs.version }}"
+          body: |
+            **Release version:** v${{ needs.build.outputs.version }}
+          draft: false
+          prerelease: false
 
-    - name: Upload Ubuntu release asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./downloads/tbuddy-installer-ubuntu
-        asset_name: tbuddy-installer-ubuntu-v${{ needs.build.outputs.version }}
-        asset_content_type: application/octet-stream
+      - name: Upload Ubuntu release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./downloads/tbuddy-installer-ubuntu
+          asset_name: tbuddy-installer-ubuntu-v${{ needs.build.outputs.version }}
+          asset_content_type: application/octet-stream
 
-    - name: Upload macOS release asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./downloads/tbuddyInstaller.pkg
-        asset_name: tbuddyInstaller-macos-v${{ needs.build.outputs.version }}.pkg
-        asset_content_type: application/octet-stream
-
-    - name: Upload Windows release asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./downloads/tbuddy-installer-windows.exe
-        asset_name: tbuddy-installer-windows-v${{ needs.build.outputs.version }}.exe
-        asset_content_type: application/octet-stream
+      - name: Upload macOS release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./downloads/tbuddyInstaller.pkg
+          asset_name: tbuddyInstaller-macos-v${{ needs.build.outputs.version }}.pkg
+          asset_content_type: application/octet-stream
