@@ -107,7 +107,7 @@ jobs:
 
         # Allow codesign to access the keychain
         security set-key-partition-list -S apple-tool:,apple: -s -k "" ~/Library/Keychains/build.keychain
-
+      shell: bash
 
     - name: Code-sign the application
       run: |
