@@ -82,24 +82,30 @@ jobs:
 
     - name: Set up Certificate and Key for Signing
       run: |
-        echo "${{ secrets.MACOS_CERTIFICATE_CER }}" | base64 --decode > developer_id_certificate.cer
-        echo "${{ secrets.MACOS_CERTIFICATE_KEY }}" | base64 --decode > developer_id_key.key
+        echo "${{ secrets.MACOS_CERTIFICATE_CER }}" | base64 --decode > developer_id_certificate.pem
+        echo "${{ secrets.MACOS_CERTIFICATE_KEY }}" | base64 --decode > developer_id_key.pem
         security create-keychain -p "" build.keychain
-        
-        # Check if certificate exists, else import it
+
+        # Import the certificate
         if security find-certificate -c "Developer ID Installer" ~/Library/Keychains/build.keychain > /dev/null 2>&1; then
           echo "Certificate already exists in the keychain, skipping import."
         else
           echo "Certificate not found. Importing certificate."
-          security import developer_id_certificate.cer -k ~/Library/Keychains/build.keychain -T /usr/bin/codesign
+          if ! security import developer_id_certificate.pem -k ~/Library/Keychains/build.keychain -T /usr/bin/codesign; then
+            echo "Error importing certificate: Check format and encoding."
+            exit 1
+          fi
         fi
 
-        # Check if key exists, else import it
+        # Import the key
         if security find-generic-password -l "Developer ID Installer Key" ~/Library/Keychains/build.keychain > /dev/null 2>&1; then
           echo "Key already exists in the keychain, skipping import."
         else
           echo "Key not found. Importing key."
-          security import developer_id_key.key -k ~/Library/Keychains/build.keychain -P "${{ secrets.MACOS_CERTIFICATE_KEY_PASSWORD }}" -T /usr/bin/codesign
+          if ! security import developer_id_key.pem -k ~/Library/Keychains/build.keychain -P "${{ secrets.MACOS_CERTIFICATE_KEY_PASSWORD }}" -T /usr/bin/codesign; then
+            echo "Error importing key: Check format and encoding."
+            exit 1
+          fi
         fi
 
         # Allow codesign to access the keychain
@@ -137,7 +143,7 @@ jobs:
 
         productbuild --distribution Distribution.xml \
                      --package-path ./ \
-                     --sign "Developer ID Installer: Your Name" \
+                     --sign "Payam Khaninejad" \
                      ./tbuddyInstaller.pkg
       shell: bash
 
