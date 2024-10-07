@@ -105,10 +105,14 @@ jobs:
             if ! security import developer_id_key.pem -k ~/Library/Keychains/build.keychain -P "${{ secrets.MACOS_CERTIFICATE_KEY_PASSWORD }}" -T /usr/bin/codesign -A; then
               echo "Key import failed. Attempting cleanup..."
 
-              # Find and delete the existing key
-              security delete-generic-password -a "Developer ID Installer Key" -l "Developer ID Installer Key" ~/Library/Keychains/build.keychain
+              # Attempt to delete the existing key (if any)
+              if security delete-generic-password -a "Developer ID Installer Key" -l "Developer ID Installer Key" ~/Library/Keychains/build.keychain; then
+                echo "Old key deleted successfully. Retrying key import."
+              else
+                echo "No existing key found or failed to delete the key. Proceeding with retry."
+              fi
 
-              echo "Attempting to import key again..."
+              # Retry importing the key
               if ! security import developer_id_key.pem -k ~/Library/Keychains/build.keychain -P "${{ secrets.MACOS_CERTIFICATE_KEY_PASSWORD }}" -T /usr/bin/codesign -A; then
                 echo "Error importing key after cleanup: Check format and encoding."
                 exit 1
@@ -118,11 +122,11 @@ jobs:
 
           # Allow codesign to access the keychain
           security set-key-partition-list -S apple-tool:,apple: -s -k "" ~/Library/Keychains/build.keychain
-        shell: bash      
+        shell: bash
 
       - name: Code-sign the application
         run: |
-          codesign --deep --force --verify --sign "Developer ID Application: Your Name" ./downloads/tbuddy-installer-macos
+          codesign --deep --force --verify --sign "Payam Khaninejad" ./downloads/tbuddy-installer-macos
         shell: bash
 
       - name: Package macOS installer
@@ -133,21 +137,24 @@ jobs:
                    --install-location /Applications \
                    ./tbuddyComponent.pkg
 
-          echo '<?xml version="1.0" encoding="utf-8"?>' > Distribution.xml
-          echo '<installer-gui-script minSpecVersion="1">' >> Distribution.xml
-          echo '  <title>tbuddy Installer</title>' >> Distribution.xml
-          echo '  <license file="license.txt"/>' >> Distribution.xml
-          echo '  <options customize="never" require-scripts="false"/>' >> Distribution.xml
-          echo '  <choices-outline>' >> Distribution.xml
-          echo '    <line choice="default">' >> Distribution.xml
-          echo '      <line choice="tbuddy"/>' >> Distribution.xml
-          echo '    </line>' >> Distribution.xml
-          echo '  </choices-outline>' >> Distribution.xml
-          echo '  <choice id="tbuddy" title="tbuddy">' >> Distribution.xml
-          echo '    <pkg-ref id="com.yourname.tbuddy.pkg"/>' >> Distribution.xml
-          echo '  </choice>' >> Distribution.xml
-          echo '  <pkg-ref id="com.yourname.tbuddy.pkg" installKBytes="3000" version="${{ needs.build.outputs.version }}" auth="root">#tbuddyComponent.pkg</pkg-ref>' >> Distribution.xml
-          echo '</installer-gui-script>' >> Distribution.xml
+          # Create Distribution XML for productbuild
+          cat << EOF > Distribution.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <installer-gui-script minSpecVersion="1">
+            <title>tbuddy Installer</title>
+            <license file="license.txt"/>
+            <options customize="never" require-scripts="false"/>
+            <choices-outline>
+              <line choice="default">
+                <line choice="tbuddy"/>
+              </line>
+            </choices-outline>
+            <choice id="tbuddy" title="tbuddy">
+              <pkg-ref id="com.yourname.tbuddy.pkg"/>
+            </choice>
+            <pkg-ref id="com.yourname.tbuddy.pkg" installKBytes="3000" version="${{ needs.build.outputs.version }}" auth="root">#tbuddyComponent.pkg</pkg-ref>
+          </installer-gui-script>
+          EOF
 
           productbuild --distribution Distribution.xml \
                        --package-path ./ \
@@ -160,65 +167,3 @@ jobs:
         with:
           name: tbuddyInstaller.pkg
           path: ./tbuddyInstaller.pkg
-
-  release:
-    needs: [build, macos_package]
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set Release Version
-        run: echo "VERSION=${{ needs.build.outputs.version }}" >> $GITHUB_ENV
-
-      - name: Download Ubuntu artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: tbuddy-installer-ubuntu
-          path: ./downloads
-
-      - name: Download Windows artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: tbuddy-installer-windows
-          path: ./downloads
-
-      - name: Download macOS pkg artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: tbuddyInstaller.pkg
-          path: ./downloads
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ needs.build.outputs.version }}
-          release_name: "tbuddy Release v${{ needs.build.outputs.version }}"
-          body: |
-            **Release version:** v${{ needs.build.outputs.version }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Ubuntu release asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./downloads/tbuddy-installer-ubuntu
-          asset_name: tbuddy-installer-ubuntu-v${{ needs.build.outputs.version }}
-          asset_content_type: application/octet-stream
-
-      - name: Upload macOS release asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./downloads/tbuddyInstaller.pkg
-          asset_name: tbuddyInstaller-macos-v${{ needs.build.outputs.version }}.pkg
-          asset_content_type: application/octet-stream
