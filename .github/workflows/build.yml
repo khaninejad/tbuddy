@@ -59,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: tbuddy-installer-macos
-          path: ./dist/tbuddy.app  # Adjust if needed based on ls output
+          path: ./dist/tbuddy.app
 
       - name: Build installer (Windows and Ubuntu)
         if: matrix.os != 'macos-latest'
@@ -94,7 +94,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: tbuddy-installer-macos
-          path: ./dist  # Correct path where pyinstaller outputs tbuddy.app
+          path: ./downloads  # This is where the artifact is downloaded to
 
       - name: Install Node.js
         uses: actions/setup-node@v3
@@ -104,9 +104,17 @@ jobs:
       - name: Install create-dmg
         run: npm install --global create-dmg
 
+      # Get the absolute path of the .app bundle
+      - name: Print absolute path of tbuddy.app
+        run: |
+          APP_PATH=$(realpath ./downloads/tbuddy.app)
+          echo "Absolute path of tbuddy.app: $APP_PATH"
+        shell: bash
+
       - name: Create DMG Package
         run: |
-          create-dmg './dist/tbuddy.app' ./tbuddy-installer-dmg --overwrite
+          APP_PATH=$(realpath ./downloads/tbuddy.app)
+          create-dmg "$APP_PATH" ./tbuddy-installer-dmg --overwrite
         shell: bash
 
       - name: Upload macOS dmg artifact
