@@ -82,7 +82,7 @@ jobs:
 
     - name: Set up Certificate and Key for Signing
       run: |
-        echo "${{ secrets.MACOS_CERTIFICATE_CER_BASE64 }}" | base64 --decode > developer_id_certificate.cer
+        echo "${{ secrets.MACOS_CERTIFICATE_CER }}" | base64 --decode > developer_id_certificate.cer
         echo "${{ secrets.MACOS_CERTIFICATE_KEY }}" > developer_id_key.key
         security create-keychain -p "" build.keychain
         security import developer_id_certificate.cer -k ~/Library/Keychains/build.keychain -T /usr/bin/codesign
