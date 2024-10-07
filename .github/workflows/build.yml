@@ -82,11 +82,30 @@ jobs:
 
     - name: Set up Certificate and Key for Signing
       run: |
+        # Decode the Base64 certificate and save it as a file
         echo "${{ secrets.MACOS_CERTIFICATE_CER }}" | base64 --decode > developer_id_certificate.cer
         echo "${{ secrets.MACOS_CERTIFICATE_KEY }}" > developer_id_key.key
+        
+        # Create a new keychain
         security create-keychain -p "" build.keychain
-        security import developer_id_certificate.cer -k ~/Library/Keychains/build.keychain -T /usr/bin/codesign
-        security import developer_id_key.key -k ~/Library/Keychains/build.keychain -P "${{ secrets.MACOS_CERTIFICATE_KEY_PASSWORD }}" -T /usr/bin/codesign
+        
+        # Check if the certificate is already imported
+        if security find-certificate -c "Developer ID Installer" ~/Library/Keychains/build.keychain > /dev/null 2>&1; then
+          echo "Certificate already exists in the keychain, skipping import."
+        else
+          echo "Certificate not found. Importing certificate."
+          security import developer_id_certificate.cer -k ~/Library/Keychains/build.keychain -T /usr/bin/codesign
+        fi
+
+        # Import the private key, ensuring it doesn’t exist first
+        if security find-key -l "Developer ID Installer" ~/Library/Keychains/build.keychain > /dev/null 2>&1; then
+          echo "Key already exists in the keychain, skipping import."
+        else
+          echo "Key not found. Importing key."
+          security import developer_id_key.key -k ~/Library/Keychains/build.keychain -P "${{ secrets.MACOS_CERTIFICATE_KEY_PASSWORD }}" -T /usr/bin/codesign
+        fi
+
+        # Allow codesign to access the keychain
         security set-key-partition-list -S apple-tool:,apple: -s -k "" ~/Library/Keychains/build.keychain
       shell: bash
 
