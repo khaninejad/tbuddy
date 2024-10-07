@@ -45,6 +45,27 @@ jobs:
         pyinstaller --onefile gui.py
       shell: bash
 
+    - name: Upload MacOS Installer
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: tbuddy-installer-macos
+        path: ./dist/gui  # adjust path to the generated binary
+
+    - name: Upload Windows Installer
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: tbuddy-installer-windows
+        path: ./dist/gui.exe  # adjust path to the generated binary
+
+    - name: Upload Ubuntu Installer
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: tbuddy-installer-ubuntu
+        path: ./dist/gui  # adjust path to the generated binary
+
   macos_package:
     needs: build
     runs-on: macos-latest
@@ -61,7 +82,6 @@ jobs:
 
     - name: Set up Certificate and Key for Signing
       run: |
-        # Decode the Base64 certificate
         echo "${{ secrets.MACOS_CERTIFICATE_CER_BASE64 }}" | base64 --decode > developer_id_certificate.cer
         echo "${{ secrets.MACOS_CERTIFICATE_KEY }}" > developer_id_key.key
         security create-keychain -p "" build.keychain
@@ -77,14 +97,12 @@ jobs:
 
     - name: Package macOS installer
       run: |
-        # Create a component package
         pkgbuild --root ./downloads/tbuddy-installer-macos \
                  --identifier com.yourname.tbuddy \
                  --version ${{ needs.build.outputs.version }} \
                  --install-location /Applications \
                  ./tbuddyComponent.pkg
 
-        # Create Distribution.xml for productbuild
         echo '<?xml version="1.0" encoding="utf-8"?>' > Distribution.xml
         echo '<installer-gui-script minSpecVersion="1">' >> Distribution.xml
         echo '  <title>tbuddy Installer</title>' >> Distribution.xml
@@ -101,10 +119,9 @@ jobs:
         echo '  <pkg-ref id="com.yourname.tbuddy.pkg" installKBytes="3000" version="${{ needs.build.outputs.version }}" auth="root">#tbuddyComponent.pkg</pkg-ref>' >> Distribution.xml
         echo '</installer-gui-script>' >> Distribution.xml
 
-        # Build the final product package
         productbuild --distribution Distribution.xml \
                      --package-path ./ \
-                     --sign "Payam Khaninejad" \
+                     --sign "Developer ID Installer: Your Name" \
                      ./tbuddyInstaller.pkg
       shell: bash
 
@@ -128,13 +145,13 @@ jobs:
     - name: Download Ubuntu artifact
       uses: actions/download-artifact@v3
       with:
-        name: tbuddy-installer-ubuntu-latest
+        name: tbuddy-installer-ubuntu
         path: ./downloads
 
     - name: Download Windows artifact
       uses: actions/download-artifact@v3
       with:
-        name: tbuddy-installer-windows-latest
+        name: tbuddy-installer-windows
         path: ./downloads
 
     - name: Download macOS pkg artifact
