@@ -43,7 +43,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           pip install pyinstaller
-          pyinstaller --onefile --windowed --name=tbuddy --target-arch universal2 gui.py
+          pyinstaller --onefile --windowed --name=tbuddy --target-arch x86_64 gui.py
         shell: bash
 
       - name: Upload MacOS Installer
@@ -51,7 +51,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: tbuddy-installer-macos
-          path: ./dist/tbuddy.app  # adjust path to the generated .app bundle
+          path: ./dist/tbuddy.app  # Upload the .app bundle from the correct location
 
       - name: Build installer (Windows and Ubuntu)
         if: matrix.os != 'macos-latest'
@@ -65,14 +65,14 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: tbuddy-installer-windows
-          path: ./dist/gui.exe  # adjust path to the generated binary
+          path: ./dist/gui.exe
 
       - name: Upload Ubuntu Installer
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v3
         with:
           name: tbuddy-installer-ubuntu
-          path: ./dist/gui  # adjust path to the generated binary
+          path: ./dist/gui
 
   macos_package:
     needs: build
