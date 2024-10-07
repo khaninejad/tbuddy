@@ -86,7 +86,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: tbuddy-installer-macos
-          path: ./downloads
+          path: ./dist  # Correct path where pyinstaller outputs tbuddy.app
 
       - name: Install Node.js
         uses: actions/setup-node@v3
@@ -98,7 +98,7 @@ jobs:
 
       - name: Create DMG Package
         run: |
-          create-dmg './downloads/tbuddy.app' ./tbuddy-installer-dmg --overwrite
+          create-dmg './dist/tbuddy.app' ./tbuddy-installer-dmg --overwrite
         shell: bash
 
       - name: Upload macOS dmg artifact
