@@ -10,8 +10,25 @@ permissions:
   contents: write  # Ensure the GITHUB_TOKEN has write permissions for releases
 
 jobs:
+  extract_version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract_version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Extract Version from Version File
+        id: extract_version
+        shell: bash
+        run: |
+          VERSION=$(python -c "from __version__ import __version__; print(__version__)")
+          echo "Extracted version: $VERSION"
+          echo "::set-output name=version::$VERSION"
+
   build:
     runs-on: ${{ matrix.os }}
+    needs: extract_version
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -29,14 +46,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
-      - name: Extract Version from Version File
-        id: extract_version
-        run: |
-          VERSION=$(python -c "from __version__ import __version__; print(__version__)")
-          echo "Extracted version: $VERSION"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "version=$VERSION" >> $GITHUB_OUTPUT  # Corrected syntax for setting output
 
       - name: Build and package for macOS
         if: matrix.os == 'macos-latest'
@@ -85,15 +94,11 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     env:
-      VERSION: ${{ needs.build.outputs.version }}
+      VERSION: ${{ needs.extract_version.outputs.version }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Verify version
-        run: |
-          echo "Loaded VERSION: $VERSION"
 
       - name: Download artifacts
         run: |
