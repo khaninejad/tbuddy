@@ -100,20 +100,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Download artifacts
-        run: |
-          mkdir -p ./downloads
-          # Download Ubuntu artifact
-          echo "Downloading Ubuntu installer..."
-          actions/download-artifact@v3 --name tbuddy-installer-ubuntu --path ./downloads
-          
-          # Download Windows artifact
-          echo "Downloading Windows installer..."
-          actions/download-artifact@v3 --name tbuddy-installer-windows --path ./downloads
-          
-          # Download macOS artifact
-          echo "Downloading macOS app..."
-          actions/download-artifact@v3 --name tbuddy-macos --path ./downloads
+      - name: Create downloads directory
+        run: mkdir -p ./downloads
+
+      - name: Download Ubuntu installer
+        uses: actions/download-artifact@v3
+        with:
+          name: tbuddy-installer-ubuntu
+          path: ./downloads
+
+      - name: Download Windows installer
+        uses: actions/download-artifact@v3
+        with:
+          name: tbuddy-installer-windows
+          path: ./downloads
+
+      - name: Download macOS app
+        uses: actions/download-artifact@v3
+        with:
+          name: tbuddy-macos
+          path: ./downloads
 
       # Debugging: List the contents of the downloads directory
       - name: Verify downloaded artifacts
