@@ -36,7 +36,7 @@ jobs:
           VERSION=$(python -c "from __version__ import __version__; print(__version__)")
           echo "Extracted version: $VERSION"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "::set-output name=version::$VERSION"  # Set the output
+          echo "version=$VERSION" >> $GITHUB_OUTPUT  # Corrected syntax for setting output
 
       - name: Build and package for macOS
         if: matrix.os == 'macos-latest'
@@ -92,7 +92,8 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Verify version
-        run: echo "Loaded VERSION: $VERSION"
+        run: |
+          echo "Loaded VERSION: $VERSION"
 
       - name: Download artifacts
         run: |
