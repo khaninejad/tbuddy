@@ -138,7 +138,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: tbuddy-macos
-          path: ./downloads
+          path: ./downloads/tbuddy-macos-v${{ env.VERSION }}.app
 
       - name: Verify downloaded artifacts
         run: |
