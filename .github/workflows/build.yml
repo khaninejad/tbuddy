@@ -10,6 +10,7 @@ permissions:
   contents: write  # Ensure the GITHUB_TOKEN has write permissions for releases
 
 jobs:
+  # Extract Version Job
   extract_version:
     runs-on: ubuntu-latest
     outputs:
@@ -20,15 +21,16 @@ jobs:
 
       - name: Extract Version from Version File
         id: extract_version
-        shell: bash
         run: |
           VERSION=$(python -c "from __version__ import __version__; print(__version__)")
           echo "Extracted version: $VERSION"
           echo "::set-output name=version::$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
+  # Build Job
   build:
-    runs-on: ${{ matrix.os }}
     needs: extract_version
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -90,8 +92,9 @@ jobs:
           name: tbuddy-installer-ubuntu
           path: ./dist/gui  # Ensure this matches the actual output name from PyInstaller
 
+  # Release Job
   release:
-    needs: build
+    needs: [extract_version, build]
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.extract_version.outputs.version }}
@@ -99,6 +102,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Confirm Loaded Version
+        shell: bash
+        run: |
+          echo "Loaded VERSION in release stage: $VERSION"
+        
 
       - name: Create downloads directory
         run: mkdir -p ./downloads
