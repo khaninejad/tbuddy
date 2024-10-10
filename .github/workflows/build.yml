@@ -63,9 +63,6 @@ jobs:
           pip install pyinstaller
           pyinstaller --onefile --windowed --name=tbuddy-macos-v${{ needs.extract_version.outputs.version }} gui.py
 
-          # Rename the executable inside the .app package
-          mv dist/tbuddy-macos-v${{ needs.extract_version.outputs.version }}.app/Contents/MacOS/tbuddy-macos-v${{ needs.extract_version.outputs.version }} dist/tbuddy-macos-v${{ needs.extract_version.outputs.version }}.app/Contents/MacOS/tbuddy
-          
           # Verify the contents of the dist folder
           echo "Listing contents of dist folder"
           ls -R dist/
