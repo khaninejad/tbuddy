@@ -63,7 +63,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           pip install pyinstaller
-          pyinstaller --onefile --windowed --name=tbuddy gui.py
+          pyinstaller --onefile --windowed --name=tbuddy-macos-v${{ needs.extract_version.outputs.version }} gui.py
           
           # Verify the contents of the dist folder
           echo "Listing contents of dist folder"
@@ -75,7 +75,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: tbuddy-macos
-          path: ./dist/tbuddy.app
+          path: ./dist/tbuddy-macos-v${{ needs.extract_version.outputs.version }}.app
 
       - name: Build installer for Windows and Ubuntu
         if: matrix.os != 'macos-latest'
@@ -139,12 +139,6 @@ jobs:
         with:
           name: tbuddy-macos
           path: ./downloads
-
-      # Rename the macOS app directory to include the version
-      - name: Rename macOS app
-        run: |
-          mv ./downloads/tbuddy.app ./downloads/tbuddy-macos-v${{ env.VERSION }}.app
-        shell: bash
 
       # Debugging: List the contents of the downloads directory
       - name: Verify downloaded artifacts
