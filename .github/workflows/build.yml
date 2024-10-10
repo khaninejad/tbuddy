@@ -119,8 +119,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ needs.build.outputs.version }}
-          release_name: "tbuddy Release v${{ needs.build.outputs.version }}"
+          tag_name: v${{ needs.build.outputs.version }}-${{ github.run_id }}  # Unique tag name
+          release_name: "tbuddy Release v${{ needs.build.outputs.version }} (Run #${{ github.run_id }})"
           body: |
             **Release version:** v${{ needs.build.outputs.version }}
           draft: false
@@ -132,8 +132,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./downloads/gui  # Updated to reflect the correct path
-          asset_name: tbuddy-installer-ubuntu-v${{ needs.build.outputs.version }}
+          asset_path: ./downloads/gui
+          asset_name: tbuddy-installer-ubuntu-v${{ needs.build.outputs.version }}-${{ github.run_id }}
           asset_content_type: application/octet-stream
 
       - name: Upload macOS release asset
@@ -143,7 +143,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./downloads/tbuddy.app
-          asset_name: tbuddy-macos-v${{ needs.build.outputs.version }}.app
+          asset_name: tbuddy-macos-v${{ needs.build.outputs.version }}-${{ github.run_id }}.app
           asset_content_type: application/octet-stream
 
       - name: Upload Windows release asset
@@ -152,6 +152,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./downloads/gui.exe  # Ensure this matches the actual file name
-          asset_name: tbuddy-installer-windows-v${{ needs.build.outputs.version }}.exe
+          asset_path: ./downloads/gui.exe
+          asset_name: tbuddy-installer-windows-v${{ needs.build.outputs.version }}-${{ github.run_id }}.exe
           asset_content_type: application/octet-stream
