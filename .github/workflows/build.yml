@@ -114,8 +114,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Confirm Loaded Version
-        run: echo "Loaded VERSION in release stage: $VERSION"
         shell: bash
+        run: |
+         echo "Loaded VERSION in release stage: $VERSION"
+        
 
       - name: Create downloads directory
         run: mkdir -p ./downloads
