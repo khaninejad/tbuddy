@@ -30,13 +30,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Extract Version from Version File (Linux/macOS)
+      - name: Extract Version from Version File
         id: extract_version
-        if: runner.os != 'Windows'
         run: |
           VERSION=$(python -c "from __version__ import __version__; print(__version__)")
           echo "Extracted version: $VERSION"
-          echo "VERSION=$VERSION" >> $GITHUB_ENV  # Save the version to the environment variable for later steps
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "::set-output name=version::$VERSION"  # Set the output
 
       - name: Build and package for macOS
         if: matrix.os == 'macos-latest'
@@ -56,7 +56,7 @@ jobs:
           name: tbuddy-macos
           path: ./dist/tbuddy.app
 
-      - name: Build installer (Windows and Ubuntu)
+      - name: Build installer for Windows and Ubuntu
         if: matrix.os != 'macos-latest'
         run: |
           pip install pyinstaller
@@ -84,36 +84,35 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set Release Version
-        run: echo "VERSION=${{ env.VERSION }}" >> $GITHUB_ENV  # Use the extracted version from the environment variable
+      - name: Verify version
+        run: echo "Loaded VERSION: $VERSION"
 
-      - name: Download Ubuntu artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: tbuddy-installer-ubuntu
-          path: ./downloads
-
-      - name: Download Windows artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: tbuddy-installer-windows
-          path: ./downloads
-
-      - name: Download macOS artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: tbuddy-macos
-          path: ./downloads
-
-      # Debugging: List the contents of the downloads directory for macOS
-      - name: Verify macOS artifact download
+      - name: Download artifacts
         run: |
-          echo "Listing downloaded files for macOS..."
+          mkdir -p ./downloads
+          # Download Ubuntu artifact
+          echo "Downloading Ubuntu installer..."
+          actions/download-artifact@v3 --name tbuddy-installer-ubuntu --path ./downloads
+          
+          # Download Windows artifact
+          echo "Downloading Windows installer..."
+          actions/download-artifact@v3 --name tbuddy-installer-windows --path ./downloads
+          
+          # Download macOS artifact
+          echo "Downloading macOS app..."
+          actions/download-artifact@v3 --name tbuddy-macos --path ./downloads
+
+      # Debugging: List the contents of the downloads directory
+      - name: Verify downloaded artifacts
+        run: |
+          echo "Listing downloaded files..."
           ls -R ./downloads
 
       - name: Create GitHub Release
@@ -122,7 +121,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ env.VERSION }}  # Use the extracted version here
+          tag_name: v${{ env.VERSION }}
           release_name: "tbuddy Release v${{ env.VERSION }}"
           body: |
             **Release version:** v${{ env.VERSION }}
@@ -145,7 +144,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./downloads/Contents/MacOS/tbuddy  # Correct path to the tbuddy executable
+          asset_path: ./downloads/tbuddy.app/Contents/MacOS/tbuddy  # Correct path to the tbuddy executable
           asset_name: tbuddy-macos-v${{ env.VERSION }}.app
           asset_content_type: application/octet-stream
 
