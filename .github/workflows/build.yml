@@ -30,29 +30,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Extract Version (Linux/macOS)
-        id: extract_version_unix
+      - name: Extract Version from Version File (Linux/macOS)
+        id: extract_version
         if: runner.os != 'Windows'
         run: |
           VERSION=$(python -c "from __version__ import __version__; print(__version__)")
-          echo "VERSION=${VERSION}"
-          echo "::set-output name=version::${VERSION}"
-        shell: bash
-
-      - name: Check if tag exists
-        id: tag_check
-        run: |
-          TAG_EXISTS=$(git ls-remote --tags origin | grep "refs/tags/v${{ steps.extract_version_unix.outputs.version }}" || echo "no")
-          echo "::set-output name=tag_exists::$TAG_EXISTS"
-
-      - name: Generate Unique Tag if Needed
-        id: generate_unique_tag
-        if: steps.tag_check.outputs.tag_exists != 'no'
-        run: |
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          NEW_TAG="v${{ steps.extract_version_unix.outputs.version }}-${TIMESTAMP}"
-          echo "New tag: $NEW_TAG"
-          echo "::set-output name=version::$NEW_TAG"
+          echo "Extracted version: $VERSION"
+          echo "::set-output name=version::$VERSION"
         shell: bash
 
       - name: Build and package for macOS
