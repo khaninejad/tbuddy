@@ -168,16 +168,6 @@ jobs:
           asset_name: tbuddy-installer-ubuntu-v${{ env.VERSION }}
           asset_content_type: application/octet-stream
 
-      - name: Upload macOS release asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./downloads/tbuddy-macos-v${{ env.VERSION }}.app/Contents/MacOS/tbuddy
-          asset_name: tbuddy-macos-v${{ env.VERSION }}.app
-          asset_content_type: application/octet-stream
-
       - name: Upload Windows release asset
         uses: actions/upload-release-asset@v1
         env:
@@ -187,3 +177,15 @@ jobs:
           asset_path: ./downloads/gui.exe 
           asset_name: tbuddy-installer-windows-v${{ env.VERSION }}.exe
           asset_content_type: application/octet-stream
+
+      - name: Upload macOS release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./downloads/tbuddy-macos-v${{ env.VERSION }}.app
+          asset_name: tbuddy-macos-v${{ env.VERSION }}.app
+          asset_content_type: application/octet-stream
+
+      
