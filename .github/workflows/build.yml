@@ -71,12 +71,19 @@ jobs:
           ls -R dist/
         shell: bash
 
+      - name: Zip macOS App
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd dist
+          zip -r tbuddy-macos-v${{ needs.extract_version.outputs.version }}.zip tbuddy-macos-v${{ needs.extract_version.outputs.version }}.app
+        shell: bash
+
       - name: Upload macOS App
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v3
         with:
           name: tbuddy-macos
-          path: ./dist/tbuddy-macos-v${{ needs.extract_version.outputs.version }}.app
+          path: ./dist/tbuddy-macos-v${{ needs.extract_version.outputs.version }}.zip
 
       - name: Build installer for Windows and Ubuntu
         if: matrix.os != 'macos-latest'
@@ -138,7 +145,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: tbuddy-macos
-          path: ./downloads/tbuddy-macos-v${{ env.VERSION }}.app
+          path: ./downloads
 
       - name: Verify downloaded artifacts
         run: |
@@ -184,8 +191,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./downloads/tbuddy-macos-v${{ env.VERSION }}.app
-          asset_name: tbuddy-macos-v${{ env.VERSION }}.app
-          asset_content_type: application/octet-stream
-
-      
+          asset_path: ./downloads/tbuddy-macos-v${{ env.VERSION }}.zip
+          asset_name: tbuddy-macos-v${{ env.VERSION }}.zip
+          asset_content_type: application/zip
