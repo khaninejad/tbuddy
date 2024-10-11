@@ -213,7 +213,9 @@ class BotGUI:
 
         # Command to start the bot process
         command = [sys.executable, "bot.py", user["username"], user["password"], user["stream_username"], user["game_name"], user["openai_api_key"], user["stream_language"]]
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        # Add stdin=subprocess.PIPE to allow sending commands
+        process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         self.processes[username] = process
         self.start_times[username] = time.time()
@@ -229,6 +231,7 @@ class BotGUI:
         # Start the output reading thread
         output_thread = threading.Thread(target=self.read_output, args=(process, username), daemon=True)
         output_thread.start()
+
         
 
     def update_timer(self, username, time_label):
@@ -241,27 +244,14 @@ class BotGUI:
 
     def read_output(self, process, username):
         """Read the output from the bot process and display it in the console window."""
-        if username not in self.console_windows:
-            print(f"Console window not found for username: {username}")
-            return  # Skip reading output if console window does not exist
-        
         console_output = self.console_windows[username]["output"]
         while True:
             output = process.stdout.readline()
-            error = process.stderr.readline()
-            
-            if output == '' and error == '' and process.poll() is not None:
+            if output == '' and process.poll() is not None:
                 break
-            
             if output:
                 console_output.config(state='normal')
                 console_output.insert(tk.END, output)
-                console_output.see(tk.END)
-                console_output.config(state='disabled')
-            
-            if error:
-                console_output.config(state='normal')
-                console_output.insert(tk.END, f"Error: {error}")
                 console_output.see(tk.END)
                 console_output.config(state='disabled')
 
@@ -271,7 +261,6 @@ class BotGUI:
         username = user["username"]
 
         if username in self.console_windows:
-            # Console window is already open
             return
 
         console_window = Toplevel(self.master)

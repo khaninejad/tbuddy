@@ -119,13 +119,11 @@ def get_chrome_instance(username, json_file="config.json"):
 
 def main():
     """Main function to start the bot."""
+    print("Starting the bot...")
     
-    
-
     if len(sys.argv) < 4:
         print("Usage: python bot.py <username> <strean_username> <game_name>")
         sys.exit(1)
-
 
     
     username = sys.argv[1]
