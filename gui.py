@@ -6,6 +6,7 @@ from tkinter import messagebox, simpledialog, Toplevel, Frame, scrolledtext, ttk
 import threading
 import json
 import time
+import webbrowser
 from __version__ import __version__
 
 CONFIG_FILE = "config.json"
@@ -55,13 +56,32 @@ class BotGUI:
 
         for index, user in enumerate(self.users):
             self.create_user_controls(index, user)
+    
+
 
     def create_user_controls(self, index, user):
         """Create controls for each user."""
+        def open_stream_url(stream_username):
+            # Define the stream URL format (adjust this based on your platform)
+            url = f"https://www.twitch.tv/{stream_username}"
+            webbrowser.open(url)
+
         frame = Frame(self.users_frame)
         frame.pack(fill="x", padx=5, pady=5)
 
-        user_label = tk.Label(frame, text=user["username"], width=20, anchor="w")
+        user_label = tk.Text(frame, width=40, height=1, borderwidth=0, highlightthickness=0, bg=frame.cget("bg"), fg="black")  # Match the frame background
+        user_label.insert(tk.END, f'{user["username"]} (')
+        user_label.insert(tk.END, user["stream_username"], ('link',))
+        user_label.insert(tk.END, ')')
+
+        # Configure the link style (underline and blue text for example)
+        user_label.tag_config('link', foreground='blue', underline=True)
+
+        # Bind the link to the open_stream_url function
+        user_label.tag_bind('link', '<Button-1>', lambda e, u=user["stream_username"]: open_stream_url(u))
+
+        # Disable editing of the text widget (read-only mode)
+        user_label.config(state=tk.DISABLED)
         user_label.pack(side="left")
 
         
