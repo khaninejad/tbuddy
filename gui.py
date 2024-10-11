@@ -243,47 +243,87 @@ class BotGUI:
             time.sleep(1)
 
     def read_output(self, process, username):
-        """Read the output from the bot process and display it in the console window."""
-        console_output = self.console_windows[username]["output"]
+        """Read the output from the bot process and store it in memory."""
+        if username not in self.console_windows:
+            return
+
+        # Keep reading the process output in a loop
         while True:
-            output = process.stdout.readline()
+            output = process.stdout.readline()  # Read a line of output from the bot process
             if output == '' and process.poll() is not None:
                 break
             if output:
-                console_output.config(state='normal')
-                console_output.insert(tk.END, output)
-                console_output.see(tk.END)
-                console_output.config(state='disabled')
+                # Append the output to the user's output buffer
+                self.console_windows[username]["output_buffer"].append(output)
+
+                # Update the console window if it exists
+                if self.console_windows[username]["window"] is not None and self.console_windows[username]["window"].winfo_exists():
+                    console_output = self.console_windows[username]["output"]
+                    console_output.config(state='normal')
+                    console_output.insert(tk.END, output)
+                    console_output.see(tk.END)
+                    console_output.config(state='disabled')
+
+
 
 
     def open_console(self, user):
         """Open a console window for the selected user."""
         username = user["username"]
 
+        # Check if the user already has a console window
         if username in self.console_windows:
-            return
+            if self.console_windows[username]["window"] is None or not self.console_windows[username]["window"].winfo_exists():
+                # Delete the entry if the window was destroyed
+                del self.console_windows[username]
 
-        console_window = Toplevel(self.master)
-        console_window.title(f"Console - {username}")
+        if username not in self.console_windows:
+            console_window = Toplevel(self.master)
+            console_window.title(f"Console - {username}")
 
-        console_output = scrolledtext.ScrolledText(console_window, width=80, height=20, state='disabled')
-        console_output.pack()
+            console_output = scrolledtext.ScrolledText(console_window, width=80, height=20, state='disabled')
+            console_output.pack()
 
-        input_field = tk.Entry(console_window, width=80)
-        input_field.pack(pady=5)
+            input_field = tk.Entry(console_window, width=80)
+            input_field.pack(pady=5)
 
-        def send_command():
-            command = input_field.get()
-            if command and username in self.processes:
-                process = self.processes[username]
-                process.stdin.write(command + "\n")
-                process.stdin.flush()
-                input_field.delete(0, tk.END)
+            def send_command():
+                command = input_field.get()
+                if command and username in self.processes:
+                    process = self.processes[username]
+                    process.stdin.write(command + "\n")
+                    process.stdin.flush()
+                    input_field.delete(0, tk.END)
 
-        send_button = tk.Button(console_window, text="Send", command=send_command)
-        send_button.pack(pady=5)
+            send_button = tk.Button(console_window, text="Send", command=send_command)
+            send_button.pack(pady=5)
 
-        self.console_windows[username] = {"window": console_window, "output": console_output}
+            # Initialize the output buffer in case it doesn't exist
+            if username not in self.console_windows:
+                self.console_windows[username] = {"window": console_window, "output": console_output, "output_buffer": []}
+            else:
+                self.console_windows[username]["window"] = console_window
+                self.console_windows[username]["output"] = console_output
+
+            # Handle window close event
+            def on_close():
+                self.console_windows[username]["window"] = None  # Mark the window as closed
+                console_window.destroy()
+
+            console_window.protocol("WM_DELETE_WINDOW", on_close)
+
+        # Repopulate the console with previous output
+        console_output = self.console_windows[username]["output"]
+        console_output.config(state='normal')
+        for line in self.console_windows[username]["output_buffer"]:
+            console_output.insert(tk.END, line)
+        console_output.see(tk.END)
+        console_output.config(state='disabled')
+
+        # Bring the window to the front
+        self.console_windows[username]["window"].lift()
+
+
 
 
     def stop_bot(self, user):

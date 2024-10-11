@@ -164,3 +164,4 @@ cython_debug/
 config.json
 downloaded_files
 users
+*.json
