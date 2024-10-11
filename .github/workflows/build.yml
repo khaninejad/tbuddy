@@ -127,19 +127,19 @@ jobs:
         run: mkdir -p ./downloads
 
       - name: Download Ubuntu installer
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: tbuddy-installer-ubuntu
           path: ./downloads
 
       - name: Download Windows installer
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: tbuddy-installer-windows
           path: ./downloads
 
       - name: Download macOS app
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: tbuddy-macos
           path: ./downloads
