@@ -9,7 +9,7 @@ import time
 from __version__ import __version__
 
 CONFIG_FILE = "config.json"
-LICENSED = False  # Default to unlicensed
+LICENSED = False  
 print(f"Application Version: {__version__}")
 
 class BotGUI:
@@ -17,14 +17,14 @@ class BotGUI:
         self.master = master
         master.title("Twitch Bot - User Management")
 
-        # User List Frame
+        
         self.user_frame = tk.LabelFrame(master, text="Users")
         self.user_frame.pack(padx=10, pady=10, fill="both")
 
         self.users_frame = Frame(self.user_frame)
         self.users_frame.pack(fill="both", expand=True)
 
-        # Buttons to add user and verify license
+        
         self.add_user_button = tk.Button(master, text="Add User", command=self.add_user)
         self.add_user_button.pack(pady=5)
 
@@ -32,12 +32,12 @@ class BotGUI:
         self.verify_license_button.pack(pady=5)
 
         self.load_users()
-        self.processes = {}  # Keep track of subprocesses for each user
-        self.threads = {}    # Keep track of threads to capture output
-        self.console_windows = {}  # To track console windows for each user
-        self.start_times = {}  # To track start times for each user
+        self.processes = {}  
+        self.threads = {}    
+        self.console_windows = {}  
+        self.start_times = {}  
 
-        # Define available stream languages
+        
         self.languages = ["English", "Spanish", "French", "German", "Italian", "Russian", "Chinese", "Japanese", "Korean", "Portuguese"]
 
     def load_users(self):
@@ -49,9 +49,9 @@ class BotGUI:
         else:
             self.users = []
 
-        # Populate the user controls
+        
         for widget in self.users_frame.winfo_children():
-            widget.destroy()  # Clear existing widgets
+            widget.destroy()  
 
         for index, user in enumerate(self.users):
             self.create_user_controls(index, user)
@@ -64,7 +64,7 @@ class BotGUI:
         user_label = tk.Label(frame, text=user["username"], width=20, anchor="w")
         user_label.pack(side="left")
 
-        # Add a label to display the running time
+        
         time_label = tk.Label(frame, text="00:00", width=5, anchor="w")
         time_label.pack(side="left")
 
@@ -123,10 +123,10 @@ class BotGUI:
         game_name_entry.grid(row=3, column=1)
 
         tk.Label(user_window, text="OpenAI API Key:").grid(row=4, column=0, sticky="e")
-        openai_key_entry = tk.Entry(user_window, show="*")  # Hide input for security
+        openai_key_entry = tk.Entry(user_window, show="*")  
         openai_key_entry.grid(row=4, column=1)
 
-        # Stream Language Selection using Combobox
+        
         tk.Label(user_window, text="Stream Language:").grid(row=5, column=0, sticky="e")
         self.language_combobox = ttk.Combobox(user_window, values=self.languages, state="readonly")
         self.language_combobox.grid(row=5, column=1, sticky="ew")
@@ -136,10 +136,10 @@ class BotGUI:
             password_entry.insert(0, user["password"])
             stream_username_entry.insert(0, user["stream_username"])
             game_name_entry.insert(0, user["game_name"])
-            openai_key_entry.insert(0, user.get("openai_api_key", ""))  # Insert existing API key if editing
+            openai_key_entry.insert(0, user.get("openai_api_key", ""))  
 
-            # Set selected language
-            self.language_combobox.set(user.get("stream_language", self.languages[0]))  # Default to first language
+            
+            self.language_combobox.set(user.get("stream_language", self.languages[0]))  
 
         def save_user():
             username = username_entry.get()
@@ -158,16 +158,16 @@ class BotGUI:
                 user["password"] = password
                 user["stream_username"] = stream_username
                 user["game_name"] = game_name
-                user["openai_api_key"] = openai_api_key  # Update API key
-                user["stream_language"] = selected_language  # Update selected language
+                user["openai_api_key"] = openai_api_key  
+                user["stream_language"] = selected_language  
             else:
                 new_user = {
                     "username": username,
                     "password": password,
                     "stream_username": stream_username,
                     "game_name": game_name,
-                    "openai_api_key": openai_api_key,  # Add API key for new user
-                    "stream_language": selected_language  # Add selected language for new user
+                    "openai_api_key": openai_api_key,  
+                    "stream_language": selected_language  
                 }
                 self.users.append(new_user)
                 self.create_user_controls(len(self.users) - 1, new_user)
@@ -211,19 +211,19 @@ class BotGUI:
             messagebox.showwarning("Process Running", "A bot for this user is already running.")
             return
 
-        # Start the bot process (make sure 'bot.py' can accept the additional argument)
+        
         command = [sys.executable, "bot.py", user["username"], user["password"], user["stream_username"], user["game_name"], user["openai_api_key"], user["stream_language"]]
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         self.processes[username] = process
         self.start_times[username] = time.time()
 
-        # Start a thread to update the timer
+        
         thread = threading.Thread(target=self.update_timer, args=(username, time_label), daemon=True)
         thread.start()
         self.threads[username] = thread
 
-        # Start a separate thread to read output from the process
+        
         output_thread = threading.Thread(target=self.read_output, args=(process, username), daemon=True)
         output_thread.start()
 
@@ -285,8 +285,8 @@ class BotGUI:
             process = self.processes[username]
             process.terminate()
             del self.processes[username]
-            del self.threads[username]  # Remove associated thread
-            del self.start_times[username]  # Remove associated start time
+            del self.threads[username]  
+            del self.start_times[username]  
             messagebox.showinfo("Bot Stopped", f"Bot for user {username} has been stopped.")
         else:
             messagebox.showwarning("Process Not Found", "No running process found for this user.")
@@ -306,6 +306,7 @@ class BotGUI:
 
 def start_gui():
     root = tk.Tk()
+    root.minsize(400, 300)
     app = BotGUI(root)
     root.mainloop()
 
