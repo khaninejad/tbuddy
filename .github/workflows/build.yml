@@ -53,6 +53,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Start Xvfb
+        run: |
+            sudo apt-get install -y xvfb
+            Xvfb :99 -screen 0 1024x768x24 &
+            export DISPLAY=:99
+
       - name: Run tests
         run: |
           python -m pytest tests  # Adjust this path if necessary
