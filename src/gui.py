@@ -205,16 +205,17 @@ class BotGUI:
 
     def verify_license(self):
         """Verify the license by calling an API endpoint."""
+        global LICENSED
         email = simpledialog.askstring("License Verification", "Enter your email:")
         license_key = simpledialog.askstring("License Verification", "Enter your license key:")
 
         if email and license_key:
             response = self.fake_license_api_call(email, license_key)
             if response.get("valid"):
-                global LICENSED
                 LICENSED = True
                 messagebox.showinfo("License Verified", "License verification successful. You can now add more users.")
             else:
+                LICENSED = False
                 messagebox.showerror("License Error", "Invalid license key. Please try again.")
 
     def fake_license_api_call(self, email, license_key):
