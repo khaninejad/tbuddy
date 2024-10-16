@@ -8,6 +8,8 @@ import json
 import time
 import webbrowser
 from __version__ import __version__
+from license import verify_license
+
 
 CONFIG_FILE = "config.json"
 LICENSED = False  
@@ -207,11 +209,10 @@ class BotGUI:
         """Verify the license by calling an API endpoint."""
         global LICENSED
         email = simpledialog.askstring("License Verification", "Enter your email:")
-        license_key = simpledialog.askstring("License Verification", "Enter your license key:")
+        serial_number = simpledialog.askstring("License Verification", "Enter your Serial Number:")
 
-        if email and license_key:
-            response = self.fake_license_api_call(email, license_key)
-            if response.get("valid"):
+        if email and serial_number:
+            if verify_license():
                 LICENSED = True
                 messagebox.showinfo("License Verified", "License verification successful. You can now add more users.")
             else:
