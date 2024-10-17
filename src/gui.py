@@ -8,7 +8,7 @@ import json
 import time
 import webbrowser
 from __version__ import __version__
-from license import check_license_on_startup, verify_license_data
+from license import LicenseManager
 
 
 CONFIG_FILE = "config.json"
@@ -20,27 +20,68 @@ class BotGUI:
         self.master = master
         master.title("Twitch Bot - User Management")
 
-        self.user_frame = tk.LabelFrame(master, text="Users")
-        self.user_frame.pack(padx=10, pady=10, fill="both")
+        self.license_manager = LicenseManager()
 
-        self.users_frame = Frame(self.user_frame)
-        self.users_frame.pack(fill="both", expand=True)
+        # Check the license on startup
+        self.license_manager.check_license_on_startup()
 
-        self.add_user_button = tk.Button(master, text="Add User", command=self.add_user)
-        self.add_user_button.pack(pady=5)
-
-        self.verify_license_button = tk.Button(master, text="Verify License", command=verify_license_data)
-        self.verify_license_button.pack(pady=5)
-
-        self.load_users()
-        check_license_on_startup()  # Automatically check for license on startup
+        # Setup UI based on the license type
+        if self.license_manager.LICENSED:
+            if self.license_manager.PLAN_TYPE == "Premium":
+                self.setup_premium_ui()
+            else:
+                self.setup_free_ui()
+        else:
+            self.setup_registration_ui()
 
         self.processes = {}  
         self.threads = {}    
         self.console_windows = {}  
         self.start_times = {}  
-
         self.languages = ["English", "Spanish", "French", "German", "Italian", "Russian", "Chinese", "Japanese", "Korean", "Portuguese"]
+
+    def setup_registration_ui(self):
+        """UI when no valid license exists, prompting the user to register."""
+        register_button = tk.Button(self.master, text="Register License", command=self.register_new_license)
+        register_button.pack(pady=20)
+
+    def upgrade_to_premium(self):
+        """Directs the user to a URL to upgrade to premium."""
+        webbrowser.open("https://your-upgrade-link.com")
+
+    def setup_free_ui(self):
+        """UI for Free users, with an upgrade button."""
+        upgrade_button = tk.Button(self.master, text="Upgrade to Premium", command=self.upgrade_to_premium)
+        upgrade_button.pack(pady=20)
+
+        # Add the rest of the Free plan UI setup here (e.g., user management with limitations)
+        self.create_user_management_ui()
+
+    def setup_premium_ui(self):
+        """UI for Premium users, showing they are licensed."""
+        license_label = tk.Label(self.master, text="Licensed - Premium")
+        license_label.pack(pady=20)
+
+        # Add the rest of the Premium plan UI setup here (e.g., unlimited user management)
+        self.create_user_management_ui()
+
+    def create_user_management_ui(self):
+        """Create the user management section in the UI."""
+        self.user_frame = tk.LabelFrame(self.master, text="Users")
+        self.user_frame.pack(padx=10, pady=10, fill="both")
+
+        self.users_frame = Frame(self.user_frame)
+        self.users_frame.pack(fill="both", expand=True)
+
+        self.add_user_button = tk.Button(self.master, text="Add User", command=self.add_user)
+        self.add_user_button.pack(pady=5)
+
+        self.load_users()
+
+    def register_new_license(self):
+        """Register a new license by using the LicenseManager."""
+        if self.license_manager.register_license():
+            self.license_manager.prompt_for_serial_number()
 
     def load_users(self):
         """Load user data from the configuration file."""
@@ -101,12 +142,29 @@ class BotGUI:
 
     def add_user(self):
         """Add a new user with a popup dialog."""
-        global LICENSED, PLAN_TYPE
-        if PLAN_TYPE == "Free" and len(self.users) >= 1:
-            messagebox.showerror("License Error", "Only one user is allowed for free. Please purchase a license to add more users.")
-            return
+        # Debug print to check the plan type
+        plan_type = self.license_manager.PLAN_TYPE
+        print(f"Current plan type: {plan_type}")
 
+        # Debug print to check the current number of users
+        print(f"Number of existing users: {len(self.users)}")
+
+        # Check if the user is on the Free plan and already has one user
+        if plan_type == "FREE" and len(self.users) >= 1:
+            messagebox.showerror(
+                "Upgrade to Premium",
+                "You are currently on the Free plan, which allows only one user. Please upgrade to Premium to add more users."
+            )
+            print("User limit reached. Prompting to upgrade to Premium.")
+            return  # Exit the function if the user is on the free plan and has reached the user limit
+
+        print("User limit not reached. Showing the user form.")
+        # Show the form to add a new user if they are allowed to add more users
         self.show_user_form()
+
+
+
+
 
     def edit_user(self, user, frame):
         """Edit an existing user."""
