@@ -61,7 +61,7 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest tests --continue-on-collection-errors
+          python -m pytest tests
 
   build:
     needs: [extract_version, test]  # Ensure tests pass before building
