@@ -2,17 +2,17 @@ import os
 import sys
 import subprocess
 import tkinter as tk
-from tkinter import messagebox, simpledialog, Toplevel, Frame, scrolledtext, ttk
+from tkinter import messagebox, Toplevel, Frame, scrolledtext, ttk
 import threading
 import json
 import time
 import webbrowser
 from __version__ import __version__
-from license import verify_license
+from license import check_license_on_startup, verify_license_data
 
 
 CONFIG_FILE = "config.json"
-LICENSED = False  
+LICENSED = False
 print(f"Application Version: {__version__}")
 
 class BotGUI:
@@ -20,27 +20,26 @@ class BotGUI:
         self.master = master
         master.title("Twitch Bot - User Management")
 
-        
         self.user_frame = tk.LabelFrame(master, text="Users")
         self.user_frame.pack(padx=10, pady=10, fill="both")
 
         self.users_frame = Frame(self.user_frame)
         self.users_frame.pack(fill="both", expand=True)
 
-        
         self.add_user_button = tk.Button(master, text="Add User", command=self.add_user)
         self.add_user_button.pack(pady=5)
 
-        self.verify_license_button = tk.Button(master, text="Verify License", command=self.verify_license)
+        self.verify_license_button = tk.Button(master, text="Verify License", command=verify_license_data)
         self.verify_license_button.pack(pady=5)
 
         self.load_users()
+        check_license_on_startup()  # Automatically check for license on startup
+
         self.processes = {}  
         self.threads = {}    
         self.console_windows = {}  
         self.start_times = {}  
 
-        
         self.languages = ["English", "Spanish", "French", "German", "Italian", "Russian", "Chinese", "Japanese", "Korean", "Portuguese"]
 
     def load_users(self):
@@ -52,41 +51,30 @@ class BotGUI:
         else:
             self.users = []
 
-        
         for widget in self.users_frame.winfo_children():
             widget.destroy()  
 
         for index, user in enumerate(self.users):
             self.create_user_controls(index, user)
-    
-
 
     def create_user_controls(self, index, user):
         """Create controls for each user."""
         def open_stream_url(stream_username):
-            # Define the stream URL format (adjust this based on your platform)
             url = f"https://www.twitch.tv/{stream_username}"
             webbrowser.open(url)
 
         frame = Frame(self.users_frame)
         frame.pack(fill="x", padx=5, pady=5)
 
-        user_label = tk.Text(frame, width=40, height=1, borderwidth=0, highlightthickness=0, bg=frame.cget("bg"), fg="black")  # Match the frame background
+        user_label = tk.Text(frame, width=40, height=1, borderwidth=0, highlightthickness=0, bg=frame.cget("bg"), fg="black")
         user_label.insert(tk.END, f'{user["username"]} (')
         user_label.insert(tk.END, user["stream_username"], ('link',))
         user_label.insert(tk.END, ')')
-
-        # Configure the link style (underline and blue text for example)
         user_label.tag_config('link', foreground='blue', underline=True)
-
-        # Bind the link to the open_stream_url function
         user_label.tag_bind('link', '<Button-1>', lambda e, u=user["stream_username"]: open_stream_url(u))
-
-        # Disable editing of the text widget (read-only mode)
         user_label.config(state=tk.DISABLED)
         user_label.pack(side="left")
 
-        
         time_label = tk.Label(frame, text="00:00", width=5, anchor="w")
         time_label.pack(side="left")
 
@@ -113,7 +101,8 @@ class BotGUI:
 
     def add_user(self):
         """Add a new user with a popup dialog."""
-        if not LICENSED and len(self.users) >= 1:
+        global LICENSED, PLAN_TYPE
+        if PLAN_TYPE == "Free" and len(self.users) >= 1:
             messagebox.showerror("License Error", "Only one user is allowed for free. Please purchase a license to add more users.")
             return
 
@@ -148,7 +137,6 @@ class BotGUI:
         openai_key_entry = tk.Entry(user_window, show="*")  
         openai_key_entry.grid(row=4, column=1)
 
-        
         tk.Label(user_window, text="Stream Language:").grid(row=5, column=0, sticky="e")
         self.language_combobox = ttk.Combobox(user_window, values=self.languages, state="readonly")
         self.language_combobox.grid(row=5, column=1, sticky="ew")
@@ -159,9 +147,7 @@ class BotGUI:
             stream_username_entry.insert(0, user["stream_username"])
             game_name_entry.insert(0, user["game_name"])
             openai_key_entry.insert(0, user.get("openai_api_key", ""))  
-
-            
-            self.language_combobox.set(user.get("stream_language", self.languages[0]))  
+            self.language_combobox.set(user.get("stream_language", self.languages[0]))
 
         def save_user():
             username = username_entry.get()
@@ -205,26 +191,10 @@ class BotGUI:
         save_button = tk.Button(user_window, text="Save", command=save_user)
         save_button.grid(row=6, column=1, pady=5)
 
-    def verify_license(self):
-        """Verify the license by calling an API endpoint."""
-        global LICENSED
-        email = simpledialog.askstring("License Verification", "Enter your email:")
-        serial_number = simpledialog.askstring("License Verification", "Enter your Serial Number:")
 
-        if email and serial_number:
-            if verify_license():
-                LICENSED = True
-                messagebox.showinfo("License Verified", "License verification successful. You can now add more users.")
-            else:
-                LICENSED = False
-                messagebox.showerror("License Error", "Invalid license key. Please try again.")
+    # Placeholder for methods: start_bot, stop_bot, delete_user, open_console
 
-    def fake_license_api_call(self, email, license_key):
-        """Simulate an API call to verify license (replace this with an actual request)."""
-        if license_key == "VALID_KEY":
-            return {"valid": True}
-        else:
-            return {"valid": False}
+
 
     def start_bot(self, user, time_label):
         """Start the bot for the selected user."""
