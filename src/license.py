@@ -36,8 +36,16 @@ class LicenseManager:
         try:
             response = requests.post(url, headers=headers, data=payload)
             if response.status_code == 200:
-                messagebox.showinfo("Registration", "An email with your serial number has been sent.")
-                return True
+                response_json = response.json()
+                self.serial_number = response_json.get("license")
+
+                if self.serial_number:
+                    messagebox.showinfo("Registration", "License registered successfully.")
+                    self.save_license()
+                    return True
+                else:
+                    messagebox.showerror("Registration Error", "Failed to retrieve serial number from the server.")
+                    return False
             else:
                 messagebox.showerror("Registration Error", f"Registration failed with status code {response.status_code}.")
                 return False
@@ -146,4 +154,4 @@ class LicenseManager:
         else:
             print("No license file found. Prompting for registration...")
             if self.register_license():
-                self.prompt_for_serial_number()
+                self.check_license_on_startup()

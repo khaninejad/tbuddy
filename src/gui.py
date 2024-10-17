@@ -27,7 +27,7 @@ class BotGUI:
 
         # Setup UI based on the license type
         if self.license_manager.LICENSED:
-            if self.license_manager.PLAN_TYPE == "Premium":
+            if self.license_manager.PLAN_TYPE == "PREMIUM":
                 self.setup_premium_ui()
             else:
                 self.setup_free_ui()
