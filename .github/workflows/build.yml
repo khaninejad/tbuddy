@@ -88,7 +88,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           pip install pyinstaller
-          pyinstaller --target-arch universal2 --onefile --windowed --icon=app.icns --name=tbuddy-macos-v${{ needs.extract_version.outputs.version }} gui.py
+          pyinstaller --target-arch universal2 --onefile --windowed --icon=app.icns --name=tbuddy-macos-v${{ needs.extract_version.outputs.version }} src/gui.py
 
           # Verify the contents of the dist folder
           echo "Listing contents of dist folder"
@@ -113,7 +113,7 @@ jobs:
         if: matrix.os != 'macos-latest'
         run: |
           pip install pyinstaller
-          pyinstaller --onefile gui.py
+          pyinstaller --onefile src/gui.py
           
           # Verify the contents of the dist folder
           echo "Listing contents of dist folder"
