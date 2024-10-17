@@ -31,7 +31,7 @@ jobs:
       - name: Extract Version from Version File
         id: extract_version
         run: |
-          VERSION=$(python -c "from __version__ import __version__; print(__version__)")
+          VERSION=$(python -c "from src.__version__ import __version__; print(__version__)")
           echo "Extracted version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT  # Updated to use GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_ENV  # Also set it in the environment file
