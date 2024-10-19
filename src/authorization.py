@@ -3,7 +3,6 @@ import time
 import json
 import os
 import requests
-import webbrowser
 from urllib.parse import urlparse, parse_qs
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
@@ -82,6 +81,7 @@ class TwitchOAuthHandler(BaseHTTPRequestHandler):
 def get_authorization_code(driver, client_id, redirect_uri, scopes, username, password):
     """Open the Twitch OAuth authorization URL and start a local server to get the authorization code."""
     auth_url = generate_auth_url(client_id, redirect_uri, scopes)
+    print(password)
 
     # Open the URL in the default web browser
     # driver.uc_open(auth_url)

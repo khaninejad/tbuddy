@@ -1,8 +1,6 @@
-import os
 import platform
 import uuid
 from getmac import get_mac_address
-import psutil
 import subprocess
 
 def get_disk_serial():

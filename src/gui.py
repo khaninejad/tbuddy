@@ -7,9 +7,9 @@ import threading
 import json
 import time
 import webbrowser
-from .__version__ import __version__
-from .license import LicenseManager
-from .update_checker import UpdateChecker
+from __version__ import __version__
+from license import LicenseManager
+from update_checker import UpdateChecker
 
 
 CONFIG_FILE = "config.json"

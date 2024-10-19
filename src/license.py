@@ -2,7 +2,7 @@ import os
 import json
 import requests
 from tkinter import messagebox, simpledialog
-from .device import get_device_id  # Assuming this correctly fetches the device_id
+from device import get_device_id  # Assuming this correctly fetches the device_id
 
 LICENSE_FILE = "license.json"
 
