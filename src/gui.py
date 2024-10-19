@@ -9,6 +9,7 @@ import time
 import webbrowser
 from .__version__ import __version__
 from .license import LicenseManager
+from .update_checker import UpdateChecker
 
 
 CONFIG_FILE = "config.json"
@@ -19,6 +20,12 @@ class BotGUI:
     def __init__(self, master):
         self.master = master
         master.title("Twitch Bot - User Management")
+        
+        update_checker = UpdateChecker(__version__)
+        update_available, last_release = update_checker.check_for_updates()
+
+        if update_available:
+            self.prompt_for_update(last_release, update_checker)
 
         self.license_manager = LicenseManager()
 
@@ -40,6 +47,30 @@ class BotGUI:
         self.start_times = {}  
         self.languages = ["English", "Spanish", "French", "German", "Italian", "Russian", "Chinese", "Japanese", "Korean", "Portuguese"]
 
+    def prompt_for_update(self, last_release, update_checker):
+        update_window = Toplevel(self.master)
+        update_window.title("Update Available")
+
+        tk.Label(update_window, text=f"Update available: v{last_release['version']}").pack(pady=20)
+
+        def update_now():
+            update_filename = update_checker.download_update(last_release)
+            update_checker.extract_update(last_release, update_filename)
+            update_checker.install_update(last_release)
+            update_window.destroy()
+            messagebox.showinfo("Update Installed", "The update has been successfully installed.")
+
+        def remind_me_later():
+            update_window.destroy()
+
+        update_button = tk.Button(update_window, text="Update Now", command=update_now)
+        update_button.pack(pady=10)
+
+        remind_me_later_button = tk.Button(update_window, text="Remind Me Later", command=remind_me_later)
+        remind_me_later_button.pack(pady=10)
+    
+    
+    
     def setup_registration_ui(self):
         """UI when no valid license exists, prompting the user to register."""
         register_button = tk.Button(self.master, text="Register License", command=self.register_new_license)
