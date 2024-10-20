@@ -205,18 +205,6 @@ def take_screenshots_and_describe(driver, interval_range, run_duration, output_f
     """Take screenshots and describe them immediately, skipping the first screenshot."""
     start_time = time.time()
     screenshot_count = 0
-    output_folder = os.path.join(username_arg, output_folder)
-    description_folder = os.path.join(username_arg, description_folder)
-    comment_folder = os.path.join(username_arg, comment_folder)
-
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-
-    if not os.path.exists(description_folder):
-        os.makedirs(description_folder)
-
-    if not os.path.exists(comment_folder):
-        os.makedirs(comment_folder)
 
     while (time.time() - start_time) < run_duration:
         

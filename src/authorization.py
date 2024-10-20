@@ -8,19 +8,25 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from twitch import twitch_login
 
-def get_token_file(user_id):
+def get_token_file(user_id, base_folder="users"):
     """Get the token file path for a specific user."""
-    return f"twitch_token_{user_id}.json"
+    return os.path.join(base_folder, user_id, "token.json")
 
-def save_token(user_id, token_data):
+def save_token(user_id, token_data, base_folder="users"):
     """Save access token and its expiration time to a file specific to the user."""
-    token_file = get_token_file(user_id)
+    token_file = get_token_file(user_id, base_folder)
+    token_folder = os.path.dirname(token_file)
+    
+    # Create the user folder if it doesn't exist
+    if not os.path.exists(token_folder):
+        os.makedirs(token_folder)
+    
     with open(token_file, "w") as f:
         json.dump(token_data, f)
 
-def load_token(user_id):
+def load_token(user_id, base_folder="users"):
     """Load access token and its expiration time from the file specific to the user."""
-    token_file = get_token_file(user_id)
+    token_file = get_token_file(user_id, base_folder)
     if os.path.exists(token_file):
         with open(token_file, "r") as f:
             return json.load(f)
