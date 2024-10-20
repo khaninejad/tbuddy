@@ -9,6 +9,7 @@ import time
 import webbrowser
 from __version__ import __version__
 from license import LicenseManager
+from load_assistant_type import load_assistant_types
 from update_checker import UpdateChecker
 
 
@@ -146,6 +147,10 @@ class BotGUI:
         user_label.tag_bind('link', '<Button-1>', lambda e, u=user["stream_username"]: open_stream_url(u))
         user_label.config(state=tk.DISABLED)
         user_label.pack(side="left")
+        
+        assistant_label = tk.Label(frame, text=f"Assistant: {user.get('assistant_type', 'Not Set')}")
+        assistant_label.pack(side="left", padx=5)
+        
 
         time_label = tk.Label(frame, text="00:00", width=5, anchor="w")
         time_label.pack(side="left")
@@ -229,6 +234,12 @@ class BotGUI:
         tk.Label(user_window, text="Stream Language:").grid(row=5, column=0, sticky="e")
         self.language_combobox = ttk.Combobox(user_window, values=self.languages, state="readonly")
         self.language_combobox.grid(row=5, column=1, sticky="ew")
+        
+        
+        tk.Label(user_window, text="Assistant Type:").grid(row=6, column=0, sticky="e")
+        self.assistant_types = load_assistant_types()
+        self.assistant_combobox = ttk.Combobox(user_window, values=self.assistant_types, state="readonly")
+        self.assistant_combobox.grid(row=6, column=1, sticky="ew")
 
         if user:
             username_entry.insert(0, user["username"])
@@ -237,6 +248,7 @@ class BotGUI:
             game_name_entry.insert(0, user["game_name"])
             openai_key_entry.insert(0, user.get("openai_api_key", ""))  
             self.language_combobox.set(user.get("stream_language", self.languages[0]))
+            self.assistant_combobox.set(user.get("assistant_type", self.assistant_types[0]))
 
         def save_user():
             username = username_entry.get()
@@ -245,6 +257,7 @@ class BotGUI:
             game_name = game_name_entry.get()
             openai_api_key = openai_key_entry.get()
             selected_language = self.language_combobox.get()
+            selected_assistant = self.assistant_combobox.get()
 
             if not username or not password or not stream_username or not game_name or not openai_api_key:
                 messagebox.showerror("Input Error", "All fields are required.")
@@ -257,6 +270,7 @@ class BotGUI:
                 user["game_name"] = game_name
                 user["openai_api_key"] = openai_api_key  
                 user["stream_language"] = selected_language  
+                user["assistant_type"] = selected_assistant
             else:
                 new_user = {
                     "username": username,
@@ -264,7 +278,8 @@ class BotGUI:
                     "stream_username": stream_username,
                     "game_name": game_name,
                     "openai_api_key": openai_api_key,  
-                    "stream_language": selected_language  
+                    "stream_language": selected_language,
+                    "assistant_type": selected_assistant  
                 }
                 self.users.append(new_user)
                 self.create_user_controls(len(self.users) - 1, new_user)
@@ -278,7 +293,7 @@ class BotGUI:
                 self.create_user_controls(self.users.index(user), user)
 
         save_button = tk.Button(user_window, text="Save", command=save_user)
-        save_button.grid(row=6, column=1, pady=5)
+        save_button.grid(row=7, column=1, pady=5)
 
 
     # Placeholder for methods: start_bot, stop_bot, delete_user, open_console

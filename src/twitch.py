@@ -3,6 +3,8 @@ import random
 import time
 import requests
 import os
+
+from load_assistant_type import load_assistant_type
 from utils import GREEN_TEXT, RED_TEXT, RESET_TEXT, countdown_timer, print_error
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
@@ -345,35 +347,13 @@ def toggle_side_nav(driver):
     except Exception as e:
         print_error(f"Error while toggling side navigation")
 
-def generate_comments(api_key, game_name, description, chat_messages_text, stream_language):
+def generate_comments(api_key, game_name, description, chat_messages_text, stream_language, assistant_name="IShowSpeed"):
     """Generate Twitch-style comments without usernames for the current game context."""
-    comment_styles = [
-    "Casual banter: 'I have no idea how to use this character!'",
-    "Humorous observations: 'Oh no, they are maxing their resources again!'",
-    "Engaging responses: 'Is this a tournament or just a regular match?'",
-    "Light-hearted jests: 'Hindsight is always 20/20!'",
-    "Excited reactions: 'What a crazy play!'",
-    "Casual questions: 'How does this mechanic work?'"
-    "Strategic Analysis: “That unit combo could really turn the tide!”"
-    "Empathetic Support: “We’ve all been there; keep trying!”"
-	"Meme References: “This play is giving me serious ‘bruh’ vibes.”"
-	"Cheeky Remarks: “That was a bold move; let’s see if it pays off!”"
-	"Hypothetical Scenarios: “Imagine if they had gone for a different strategy!”"
-	"Nostalgic References: “This reminds me of the good old days of gaming!”"
-	"Encouraging Comments: “You got this! Just keep pushing!”"
-	"Playful Jabs: “Looks like someone’s been practicing in secret!"
-	"Observational Humor: “That reaction was priceless; we all felt that!”"
-	"Confused Reactions: “Wait, what just happened there?”"
-    ]
-
-    selected_style = random.choice(comment_styles)
 
     prompt = f"""
-    Generate a ONE SHORT ({random.randint(2, 30)} words) casual comment for a Twitch stream in '{stream_language}'. The comments should reflect the lively and chaotic nature of Twitch chat while maintaining a casual tone.
+    Generate a ONE SHORT ({random.randint(2, 30)} words) comment for a Twitch stream in '{stream_language}'.
 
-    Incorporate gamer slang and emotes where appropriate, but AVOID excessive use of smiley faces or other emoticons. Each comment should be concise, engaging, and playful, adding to the fun atmosphere of the stream.
-
-    The comment style is: {selected_style}
+    Incorporate gamer slang and emotes where appropriate, but AVOID excessive use of smiley faces or other emoticons. Avoid using hashtags and motivational phrase at the end.
 
     The following is a description of the game's scene: {description}
     The following are recent chat messages from the stream: {chat_messages_text}.
@@ -386,17 +366,33 @@ def generate_comments(api_key, game_name, description, chat_messages_text, strea
             "Authorization": f"Bearer {api_key}"
         }
 
-        payload = {
-            "model": "gpt-4o-mini",  
-            "messages": [
-                { "role": "system", "content": "Act as IShowSpeeds energetic, humorous, and interactive virtual assistant, enhancing audience engagement, assisting during livestreams, and supporting task management." },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            "max_tokens": 300
-        }
+        assistant_type = load_assistant_type(assistant_name)
+        if assistant_type:
+            payload = {
+                "model": "gpt-4o-mini",  
+                "messages": [
+                    {"role": "system", "content": assistant_type},
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                "max_tokens": 300
+            }
+        else:
+
+            payload = {
+                "model": "gpt-4o-mini",  
+                "messages": [
+                    {"role": "system", "content": "Act as a generic virtual assistant, enhancing audience engagement, assisting during livestreams, and supporting task management."},
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                "max_tokens": 300
+            }
+
 
         response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload)
 
