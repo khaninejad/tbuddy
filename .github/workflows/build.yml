@@ -95,7 +95,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           pip install pyinstaller
-          pyinstaller --target-arch universal2 --onefile --windowed --icon=app.icns --name=tbuddy-macos-v${{ needs.extract_version.outputs.version }} src/gui.py --exclude-module charset_normalizer
+          pyinstaller --target-arch universal2 --onefile --add-data 'src/assistants:assistants' --windowed --icon=app.icns --name=tbuddy-macos-v${{ needs.extract_version.outputs.version }} src/gui.py --exclude-module charset_normalizer
 
           # Verify the contents of the dist folder
           echo "Listing contents of dist folder"
@@ -120,7 +120,7 @@ jobs:
         if: matrix.os != 'macos-latest'
         run: |
           pip install pyinstaller
-          pyinstaller --onefile src/gui.py
+          pyinstaller --onefile --add-data 'src/assistants:assistants' src/gui.py
           
           # Verify the contents of the dist folder
           echo "Listing contents of dist folder"
