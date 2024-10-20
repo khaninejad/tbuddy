@@ -1,23 +1,24 @@
-name: Clean Up Artifacts
+name: Cleanup Old Artifacts
 
 on:
   schedule:
-    - cron: 0 0 * * *  # Run daily at midnight
+    - cron: "0 0 * * 0"  # Runs every week
 
 jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Delete unused artifacts
+      - name: List all artifacts
         run: |
-          # Assuming you want to keep artifacts from the last 30 days
-          find./github/workspace -type f -name "*.zip" -mtime +30 -exec rm {} \;
-          # Adjust the find command to fit your artifact naming and directory structure
+          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+               https://api.github.com/repos/${{ github.repository }}/actions/artifacts \
+               | jq '.artifacts[] | {name, id, expired: (.expired==false)}'
 
-      - name: Verify cleanup
+      - name: Delete old artifacts (older than 30 days)
         run: |
-          echo "Cleanup completed. Remaining artifacts:"
-          ls -R./github/workspace
+          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+               https://api.github.com/repos/${{ github.repository }}/actions/artifacts \
+               | jq -r '.artifacts[] | select(.expired==false) | .id' \
+               | xargs -I {} curl -X DELETE \
+               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+               https://api.github.com/repos/${{ github.repository }}/actions/artifacts/{}
