@@ -64,7 +64,7 @@ jobs:
           python -m pytest tests
 
   build:
-    needs: [extract_version, test]  # Ensure tests pass before building
+    needs: [extract_version, test]  # Ensure that tests pass before building
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -84,11 +84,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Reinstall charset-normalizer from source (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          pip uninstall charset-normalizer -y
+          pip install charset-normalizer --no-binary :all:
+        shell: bash
+
       - name: Build and package for macOS
         if: matrix.os == 'macos-latest'
         run: |
           pip install pyinstaller
-          pyinstaller --target-arch x86_64 --onefile --windowed --icon=app.icns  --name=tbuddy-macos-v${{ needs.extract_version.outputs.version }} src/gui.py
+          pyinstaller --target-arch universal2 --onefile --windowed --icon=app.icns --name=tbuddy-macos-v${{ needs.extract_version.outputs.version }} src/gui.py --exclude-module charset_normalizer
 
           # Verify the contents of the dist folder
           echo "Listing contents of dist folder"
