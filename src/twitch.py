@@ -12,64 +12,64 @@ from selenium.webdriver.support import expected_conditions as EC
 def is_channel_offline(driver):
     """Check if the Twitch channel is offline by checking for the presence of the chatbox."""
     try:
-        # Wait until the chatbox appears in the DOM (class name of the chat container on Twitch)
+        
         chatbox = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "div.chat-line__message"))
         )
         
-        # If the chatbox is found, the channel is online
+        
         print("Channel is online.")
         return False
     except Exception as e:
-        # If the chatbox is not found, it means the channel is likely offline
+        
         print("Channel is offline or an error occurred.")
         return True
     
 def twitch_login(driver, username, password, auth_url="https://twitch.tv/login"):
     """Login to Twitch using the provided username and password."""
     try:
-        # Navigate to the Twitch login page
+        
         print("Navigating to the Twitch login page...")
         driver.uc_open(auth_url)
         login_wait_interval =5
         countdown_timer(login_wait_interval, "Waiting for {} seconds before login...")
-        time.sleep(login_wait_interval)  # Allow the page to load
+        time.sleep(login_wait_interval)  
         
-        # Wait for the username input to be present and enter the username
+        
         username_input = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, 'login-username'))
         )
         username_input.send_keys(username)
 
-        # Wait for the password input to be present and enter the password
+        
         password_input = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, 'password-input'))
         )
         password_input.send_keys(password)
         
-        # Click the 'Login' button
+        
         login_button = driver.find_element(By.CSS_SELECTOR, 'button[data-a-target="passport-login-button"]')
         login_button.click()
 
-        # Wait for a short while to ensure login is successful
+        
         login_success_interval = 5
         countdown_timer(login_success_interval, "Wait {} for a short while to ensure login is successful")
         time.sleep(login_success_interval)
         try:
-            # Wait for the 2FA code input field
+            
             modal_header = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, '//h2[@id="modal-root-header" and contains(text(), "Verify login code")]'))
             )
             print("2FA modal detected")
 
-            # Prompt the user for the verification code
+            
             verification_code = input(f"{RED_TEXT}Enter the 6-digit verification code sent to your device: {RESET_TEXT}")
 
-            # Ensure the code is 6 digits
+            
             if len(verification_code) != 6:
                 raise ValueError("Verification code must be 6 digits")
 
-            # Find each input field for the 6 digits
+            
             for i, digit in enumerate(verification_code, start=1):
                 digit_input = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, f'input[aria-label="Digit {i}"]'))
@@ -77,7 +77,7 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
                 digit_input.send_keys(digit)
                 print(f"Entered digit {digit}")
 
-            # Click the 'Submit' button to verify the code
+            
             wait_submit_button = 10
             countdown_timer(wait_submit_button, "Wait {} for submit buttton")
             time.sleep(wait_submit_button)
@@ -86,7 +86,7 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
             )
             submit_button.click()
             print("Submit button clicked")
-            # Wait for login completion
+            
             wait_login_compleation = 10
             countdown_timer(wait_login_compleation, "Wait {} for login compleation")
             time.sleep(wait_login_compleation)
@@ -94,12 +94,12 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
         
         except Exception as e:
             print(f"No 2FA required or error occurred during 2FA process")
-            pass  # Continue if no 2FA is required or an error occurred during 2FA
+            pass  
         
     except Exception as e:
         print_error(f"Failed to log in or already logged in")
-        # driver.quit()
-        # sys.exit(1)
+        
+        
 
 def post_twitch_message(broadcaster_id, sender_id, message, client_id, access_token):
     """Send a message to the Twitch chat."""
@@ -131,8 +131,8 @@ def post_twitch_message(broadcaster_id, sender_id, message, client_id, access_to
 def get_last_5_chat_messages(driver):
     """Get the last 5 messages from the Twitch chat."""
     try:
-        chat_messages = driver.find_elements(By.CSS_SELECTOR, 'div.chat-line__message')  # Adjust selector if necessary
-        last_5_messages = [msg.text for msg in chat_messages[-10:]]  # Get the last 5 messages
+        chat_messages = driver.find_elements(By.CSS_SELECTOR, 'div.chat-line__message')  
+        last_5_messages = [msg.text for msg in chat_messages[-10:]]  
         return last_5_messages
     except Exception as e:
         print_error(f"Error fetching chat messages: {e}")
@@ -153,7 +153,7 @@ def click_start_watching(driver):
 def dismiss_subtember_callout(driver):
     """Click the 'Dismiss Subtember Callout' button if it exists."""
     try:
-        # Wait for the button to be clickable, then click it
+        
         WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable(
                 (By.XPATH, '//button[@aria-label="Dismiss Subtember Callout"]')
@@ -166,7 +166,7 @@ def dismiss_subtember_callout(driver):
 def accept_cookies(driver):
     """Click the 'Accept' button on the cookies consent banner if it exists."""
     try:
-        # Wait for the 'Accept' button on the consent banner to be clickable, then click it
+        
         WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable(
                 (By.XPATH, '//button[@data-a-target="consent-banner-accept"]')
@@ -181,13 +181,13 @@ from selenium.webdriver import ActionChains
 def click_captions_button(driver):
     """Hover over the video player and click the 'Captions (CC)' button if it exists."""
     try:
-        # First, hover over the video player to reveal the controls (including the captions button)
+        
         video_player = driver.find_element(By.XPATH, '//div[contains(@class, "video-player")]')
         actions = ActionChains(driver)
         actions.move_to_element(video_player).perform()
         print("Hovered over video player.")
 
-        # Now wait for the Captions button to become clickable and click it
+        
         WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable(
                 (By.XPATH, '//button[@aria-label="Captions (c)"]')
@@ -217,22 +217,22 @@ def take_screenshots_and_describe(driver, interval_range, run_duration, output_f
         os.makedirs(comment_folder)
 
     while (time.time() - start_time) < run_duration:
-        # Wait for the content to be visible
+        
         wait_for_content(driver)
         
-        # Skip the first screenshot
+        
         if screenshot_count == 0:
-            # Take screenshot and ignore it
+            
             screenshot_filename = os.path.join(output_folder, f'screenshot_{screenshot_count}.png')
             driver.save_screenshot(screenshot_filename)
             print(f"Screenshot {screenshot_count} saved as {screenshot_filename} (ignored)")
         else:
-            # Take screenshot
+            
             screenshot_filename = os.path.join(output_folder, f'screenshot_{screenshot_count}.png')
             driver.save_screenshot(screenshot_filename)
             print(f"Screenshot {screenshot_count} saved as {screenshot_filename}")
 
-            # Describe the screenshot immediately
+            
             description = describe_image(screenshot_filename, api_key, game_name)
             if description:
                 description_filename = os.path.join(description_folder, f'screenshot_{screenshot_count}.txt')
@@ -242,23 +242,23 @@ def take_screenshots_and_describe(driver, interval_range, run_duration, output_f
             else:
                 print(f"{RED_TEXT}No description returned for screenshot {screenshot_count}{RESET_TEXT}")
 
-            # Fetch the last 5 chat messages
+            
             chat_messages = get_last_5_chat_messages(driver)
             
-            # Generate comments based on the description and real chat messages
+            
             comments = generate_comments(api_key, game_name, description, chat_messages, stream_language)
             if comments:
-                # Post the first generated comment to Twitch before saving
+                
                 comment_list = comments.split('\n')
-                # Select a random comment from the list
+                
                 random_comment = random.choice(comment_list)
                 post_twitch_message(broadcaster_id, sender_id, random_comment, client_id, access_token)  
                 print(f"{GREEN_TEXT}Posted comment: {random_comment}{RESET_TEXT}")
 
-                # Save all the generated comments to a file
-                comment_filename = os.path.join(comment_folder, f'screenshot_{screenshot_count}.txt')
-                with open(comment_filename, 'w') as comment_file:
-                    comment_file.write(comments)
+                
+                comment_filename = os.path.join(comment_folder, f'comments.txt')
+                with open(comment_filename, 'a') as comment_file:
+                    comment_file.write(comments + "\n")
                 print(f"Comments saved as {comment_filename}")
             else:
                 print(f"{RED_TEXT}No comments generated for screenshot {screenshot_count}{RESET_TEXT}")
@@ -272,7 +272,7 @@ def wait_for_content(driver, timeout=20):
     """Wait for specific content to be visible on the page."""
     try:
         WebDriverWait(driver, timeout).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, 'video'))  # Adjust CSS selector based on the content
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'video'))  
         )
         print("Content is visible")
     except Exception as e:
@@ -295,7 +295,7 @@ def describe_image(image_path, api_key, game_name):
         }
 
         payload = {
-            "model": "gpt-4o-mini",  # Change the model if needed
+            "model": "gpt-4o-mini",  
             "messages": [
                 {
                     "role": "user",
@@ -312,7 +312,7 @@ def describe_image(image_path, api_key, game_name):
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:image/png;base64,{base64_image}"  # Using PNG format
+                                "url": f"data:image/png;base64,{base64_image}"  
                             }
                         }
                     ]
@@ -336,7 +336,7 @@ def describe_image(image_path, api_key, game_name):
 
 def toggle_side_nav(driver):
     try:
-        # Wait for the toggle button to be clickable and click it
+        
         toggle_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-a-target="side-nav-arrow"]'))
         )
@@ -387,8 +387,9 @@ def generate_comments(api_key, game_name, description, chat_messages_text, strea
         }
 
         payload = {
-            "model": "gpt-4o-mini",  # Adjust model if necessary
+            "model": "gpt-4o-mini",  
             "messages": [
+                { "role": "system", "content": "Act as IShowSpeeds energetic, humorous, and interactive virtual assistant, enhancing audience engagement, assisting during livestreams, and supporting task management." },
                 {
                     "role": "user",
                     "content": prompt
@@ -402,21 +403,21 @@ def generate_comments(api_key, game_name, description, chat_messages_text, strea
         if response.status_code == 200:
             comments = response.json()['choices'][0]['message']['content']
             
-            # Clean up the comments by removing unwanted symbols
-            # Remove any leading numbers, bullet points, hyphens, and quotes
+            
+            
             plain_comments = comments.replace('•', '').replace('-', '').replace('\"', '').strip()
             
-            # Split the comments by newlines and clean up any excess spaces or unwanted formatting
+            
             plain_comments_list = plain_comments.split("\n")
             filtered_comments = []
 
             for comment in plain_comments_list:
-                # Remove leading/trailing whitespace from each comment and ensure it's not empty
+                
                 clean_comment = comment.strip()
                 if clean_comment and not clean_comment.startswith(('- ', '•', '"', "'", '*')):
                     filtered_comments.append(clean_comment)
 
-            # Join the cleaned comments with a single newline to ensure no extra spaces
+            
             final_comments = "\n".join(filtered_comments)
 
             return final_comments
