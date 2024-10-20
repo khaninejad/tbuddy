@@ -97,11 +97,11 @@ def get_chrome_instance(username, json_file="config.json"):
     """Return a Chrome instance for the given username, creating one if necessary."""
     credentials = load_all_credentials(json_file)
     
-    # Extract a list of usernames from the credentials
+    
     usernames = [user["username"] for user in credentials["users"]]
     
     if username in usernames:
-        # Only create a new Chrome instance if one doesn’t already exist for the user
+        
         if username not in user_drivers:
             driver = create_new_chrome_instance(username)
             user_drivers[username] = driver
@@ -118,7 +118,7 @@ def ensure_folders_exist(username):
     output_folder = os.path.join(base_user_folder, "output")
     screenshots_folder = os.path.join(base_user_folder, "screenshots")
     
-    # Create the directories if they don't exist
+    
     os.makedirs(comments_folder, exist_ok=True)
     os.makedirs(output_folder, exist_ok=True)
     os.makedirs(screenshots_folder, exist_ok=True)
@@ -152,26 +152,26 @@ def main():
     client_secret = os.getenv("TWITCH_CLIENT_SECRET")
     redirect_uri = os.getenv("TWITCH_REDIRECT_URI")
 
-    # Get the Chrome instance
+    
     driver = get_chrome_instance(username)
 
-    # Get access token
+    
     access_token = get_access_token(driver, username, client_id, client_secret, redirect_uri, username, password)
     if not access_token or not validate_token(access_token, client_id):
         print_error("Invalid access token. Exiting.")
         return
 
-    # Fetch broadcaster and sender IDs
+    
     broadcaster_id = get_user_id(stream_username, client_id, access_token)
     sender_id = get_user_id(username, client_id, access_token)
 
     if broadcaster_id and sender_id:
         print("Successful login")
         
-        # Ensure the necessary folders exist
+        
         comments_folder, output_folder, screenshots_folder = ensure_folders_exist(username)
         
-        # Clean up the folders
+        
         clean_screenshot_folder(username, "screenshots")
         clean_screenshot_folder(username, "output")
         clean_screenshot_folder(username, "comments")
@@ -179,7 +179,7 @@ def main():
         print_error("Failed to retrieve broadcaster or sender IDs. Cannot send message.")
         return
 
-    # Log into Twitch and start automation
+    
     twitch_login(driver, username, password)
 
     print("Navigating to stream URL")
@@ -193,7 +193,7 @@ def main():
     accept_cookies(driver)
     click_captions_button(driver)
 
-    # Take screenshots and descriptions
+    
     take_screenshots_and_describe(driver, interval, run_duration, screenshots_folder, output_folder, api_key, game_name, comments_folder, broadcaster_id, sender_id, client_id, access_token, stream_language, username)
 
     driver.quit()

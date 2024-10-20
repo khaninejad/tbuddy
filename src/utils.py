@@ -16,12 +16,12 @@ def countdown_timer(seconds, message_template="Waiting for {} seconds before log
     max_length = len(message_template.format(seconds))
 
     for remaining in range(seconds, 0, -1):
-        # Construct the message
+        
         message = message_template.format(remaining)
-        # Print the message
+        
         sys.stdout.write("\r" + message)
         sys.stdout.flush()
         time.sleep(1)
 
     final_message = message_template.format(0) + " Done!"
-    sys.stdout.write("\r" + final_message + "    \n")  # Final message
+    sys.stdout.write("\r" + final_message + "    \n")  

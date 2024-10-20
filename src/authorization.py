@@ -83,22 +83,22 @@ def get_authorization_code(driver, client_id, redirect_uri, scopes, username, pa
     auth_url = generate_auth_url(client_id, redirect_uri, scopes)
     print(password)
 
-    # Open the URL in the default web browser
-    # driver.uc_open(auth_url)
+    
+    
     twitch_login(driver, username, password, auth_url)
 
-    # Start a simple HTTP server to listen for the Twitch callback with the authorization code
-    server_address = ('', 8080)  # Listen on port 8080
+    
+    server_address = ('', 8080)  
     httpd = HTTPServer(server_address, TwitchOAuthHandler)
 
     print("Waiting for authorization code...")
 
-    # Handle a single request (this will block until Twitch redirects back with the authorization code)
+    
     httpd.handle_request()
 
-    # httpd.shutdown()
+    
 
-    # Retrieve the authorization code from the handler
+    
     return TwitchOAuthHandler.authorization_code
 
 def kill_port(port):
@@ -106,7 +106,7 @@ def kill_port(port):
     system_platform = platform.system()
     
     if system_platform == "Windows":
-        # Windows command to kill the process occupying the specified port
+        
         command = f"netstat -ano | findstr :{port}"
         result = os.popen(command).read()
         if result:
@@ -116,14 +116,14 @@ def kill_port(port):
         else:
             print(f"No process found on port {port}.")
     else:
-        # For Linux/macOS
+        
         command = f"lsof -ti :{port} | xargs kill -9"
         os.system(command)
         print(f"Killed process on port {port}.")
 
 def get_access_token(driver, user_id, client_id, client_secret, redirect_uri, username, password):
     """Get a new access token via the authorization code flow."""
-    kill_port(8080)  # Kill any existing process using port 8080
+    kill_port(8080)  
     token_data = load_token(user_id)
     
     if token_data and not is_token_expired(token_data):
@@ -132,20 +132,20 @@ def get_access_token(driver, user_id, client_id, client_secret, redirect_uri, us
     
     print(f"Token expired or not found for user {user_id}, requesting new authorization...")
 
-    # Get the authorization code by running the local server to handle the redirect
+    
     authorization_code = get_authorization_code(driver, client_id, redirect_uri, "user:write:chat user:bot", username, password)
     
     if authorization_code:
-        # Exchange the authorization code for an access token
+        
         token_response = get_access_token_with_code(client_id, client_secret, redirect_uri, authorization_code)
         
         if token_response:
-            # Get the user ID from token response (which is important for saving unique tokens per user)
+            
             access_token = token_response['access_token']
             expires_in = token_response['expires_in']
-            user_id = token_response.get('user_id', user_id)  # Assuming user_id is returned
+            user_id = token_response.get('user_id', user_id)  
 
-            # Store token and expiration time
+            
             token_data = {
                 'access_token': access_token,
                 'expires_at': time.time() + expires_in,

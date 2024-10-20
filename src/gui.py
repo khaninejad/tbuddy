@@ -30,10 +30,10 @@ class BotGUI:
 
         self.license_manager = LicenseManager()
 
-        # Check the license on startup
+        
         self.license_manager.check_license_on_startup()
 
-        # Setup UI based on the license type
+        
         if self.license_manager.LICENSED:
             if self.license_manager.PLAN_TYPE == "PREMIUM":
                 self.setup_premium_ui()
@@ -86,7 +86,7 @@ class BotGUI:
         upgrade_button = tk.Button(self.master, text="Upgrade to Premium", command=self.upgrade_to_premium)
         upgrade_button.pack(pady=20)
 
-        # Add the rest of the Free plan UI setup here (e.g., user management with limitations)
+        
         self.create_user_management_ui()
 
     def setup_premium_ui(self):
@@ -94,7 +94,7 @@ class BotGUI:
         license_label = tk.Label(self.master, text="Licensed - Premium")
         license_label.pack(pady=20)
 
-        # Add the rest of the Premium plan UI setup here (e.g., unlimited user management)
+        
         self.create_user_management_ui()
 
     def create_user_management_ui(self):
@@ -178,24 +178,24 @@ class BotGUI:
 
     def add_user(self):
         """Add a new user with a popup dialog."""
-        # Debug print to check the plan type
+        
         plan_type = self.license_manager.PLAN_TYPE
         print(f"Current plan type: {plan_type}")
 
-        # Debug print to check the current number of users
+        
         print(f"Number of existing users: {len(self.users)}")
 
-        # Check if the user is on the Free plan and already has one user
+        
         if plan_type == "FREE" and len(self.users) >= 1:
             messagebox.showerror(
                 "Upgrade to Premium",
                 "You are currently on the Free plan, which allows only one user. Please upgrade to Premium to add more users."
             )
             print("User limit reached. Prompting to upgrade to Premium.")
-            return  # Exit the function if the user is on the free plan and has reached the user limit
+            return  
 
         print("User limit not reached. Showing the user form.")
-        # Show the form to add a new user if they are allowed to add more users
+        
         self.show_user_form()
 
 
@@ -296,7 +296,7 @@ class BotGUI:
         save_button.grid(row=7, column=1, pady=5)
 
 
-    # Placeholder for methods: start_bot, stop_bot, delete_user, open_console
+    
 
 
 
@@ -307,24 +307,24 @@ class BotGUI:
             messagebox.showwarning("Process Running", "A bot for this user is already running.")
             return
 
-        # Command to start the bot process
+        
         command = [sys.executable, "bot.py", user["username"], user["password"], user["stream_username"], user["game_name"], user["openai_api_key"], user["stream_language"]]
         
-        # Add stdin=subprocess.PIPE to allow sending commands
+        
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
         self.processes[username] = process
         self.start_times[username] = time.time()
 
-        # Open console for the user to ensure the console window is ready
+        
         self.open_console(user)
 
-        # Start the timer update thread
+        
         thread = threading.Thread(target=self.update_timer, args=(username, time_label), daemon=True)
         thread.start()
         self.threads[username] = thread
 
-        # Start the output reading thread
+        
         output_thread = threading.Thread(target=self.read_output, args=(process, username), daemon=True)
         output_thread.start()
 
@@ -343,16 +343,16 @@ class BotGUI:
         if username not in self.console_windows:
             return
 
-        # Keep reading the process output in a loop
+        
         while True:
-            output = process.stdout.readline()  # Read a line of output from the bot process
+            output = process.stdout.readline()  
             if output == '' and process.poll() is not None:
                 break
             if output:
-                # Append the output to the user's output buffer
+                
                 self.console_windows[username]["output_buffer"].append(output)
 
-                # Update the console window if it exists
+                
                 if self.console_windows[username]["window"] is not None and self.console_windows[username]["window"].winfo_exists():
                     console_output = self.console_windows[username]["output"]
                     console_output.config(state='normal')
@@ -367,10 +367,10 @@ class BotGUI:
         """Open a console window for the selected user."""
         username = user["username"]
 
-        # Check if the user already has a console window
+        
         if username in self.console_windows:
             if self.console_windows[username]["window"] is None or not self.console_windows[username]["window"].winfo_exists():
-                # Delete the entry if the window was destroyed
+                
                 del self.console_windows[username]
 
         if username not in self.console_windows:
@@ -394,21 +394,21 @@ class BotGUI:
             send_button = tk.Button(console_window, text="Send", command=send_command)
             send_button.pack(pady=5)
 
-            # Initialize the output buffer in case it doesn't exist
+            
             if username not in self.console_windows:
                 self.console_windows[username] = {"window": console_window, "output": console_output, "output_buffer": []}
             else:
                 self.console_windows[username]["window"] = console_window
                 self.console_windows[username]["output"] = console_output
 
-            # Handle window close event
+            
             def on_close():
-                self.console_windows[username]["window"] = None  # Mark the window as closed
+                self.console_windows[username]["window"] = None  
                 console_window.destroy()
 
             console_window.protocol("WM_DELETE_WINDOW", on_close)
 
-        # Repopulate the console with previous output
+        
         console_output = self.console_windows[username]["output"]
         console_output.config(state='normal')
         for line in self.console_windows[username]["output_buffer"]:
@@ -416,7 +416,7 @@ class BotGUI:
         console_output.see(tk.END)
         console_output.config(state='disabled')
 
-        # Bring the window to the front
+        
         self.console_windows[username]["window"].lift()
 
 
