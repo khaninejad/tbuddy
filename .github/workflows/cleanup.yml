@@ -10,17 +10,16 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
-      - name: List all artifacts
-        run: |
-          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-               https://api.github.com/repos/${{ github.repository }}/actions/artifacts \
-               | jq '.artifacts[] | {name, id, expired: (.expired==false)}'
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Delete old artifacts (older than 30 days)
+      - name: Delete unused artifacts
         run: |
-          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-               https://api.github.com/repos/${{ github.repository }}/actions/artifacts \
-               | jq -r '.artifacts[] | select(.expired==false) | .id' \
-               | xargs -I {} curl -X DELETE \
-               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-               https://api.github.com/repos/${{ github.repository }}/actions/artifacts/{}
+          # Assuming you want to keep artifacts from the last 30 days
+          find./github/workspace -type f -name "*.zip" -mtime +30 -exec rm {} \;
+          # Adjust the find command to fit your artifact naming and directory structure
+
+      - name: Verify cleanup
+        run: |
+          echo "Cleanup completed. Remaining artifacts:"
+          ls -R./github/workspace
