@@ -65,7 +65,7 @@ jobs:
 
   build:
     needs: [extract_version, test]  # Ensure that tests pass before building
-    runs-on: ${{ matrix.os }}
+    runs-on: self-hosted
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
