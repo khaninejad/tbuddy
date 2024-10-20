@@ -16,10 +16,10 @@ jobs:
       - name: Delete unused artifacts
         run: |
           # Assuming you want to keep artifacts from the last 30 days
-          find./github/workspace -type f -name "*.zip" -mtime +30 -exec rm {} \;
+          find ./github/workspace -type f -name "*.zip" -mtime +30 -exec rm {} \;
           # Adjust the find command to fit your artifact naming and directory structure
 
       - name: Verify cleanup
         run: |
           echo "Cleanup completed. Remaining artifacts:"
-          ls -R./github/workspace
+          ls -R ./github/workspace
