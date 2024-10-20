@@ -1,8 +1,10 @@
 name: Cleanup Old Artifacts
 
+# Add workflow_dispatch to enable manual triggers
 on:
-  schedule:
-    - cron: "0 0 * * 0"  # Runs every week
+  workflow_dispatch:  # Allows manual triggering from GitHub Actions UI
+  schedule:           # (Optional) Keep the cron job if you also want to trigger it automatically
+    - cron: "0 0 * * 0"  # Runs every Sunday at midnight
 
 jobs:
   cleanup:
