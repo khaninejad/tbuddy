@@ -356,10 +356,6 @@ class BotGUI:
 
         
         while True:
-            error_output = process.stderr.readline()  
-            if error_output:
-                logging.error(f"Error in bot process for user {username}: {error_output}")
-
             output = process.stdout.readline()  
             if output == '' and process.poll() is not None:
                 break

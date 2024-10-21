@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "tbuddy"
+version = "0.1.0"
+description = "twitch ai bot"
+authors = ["Payam Khaninejad <khaninejad@gmail.com>"]
+readme = "README.md"
+license = "Custom Freemium and Subscription License"
+
+[tool.poetry.dependencies]
+python = "3.12.7"
+colorama = "^0.4.6"
+pystyle = "^2.9"
+selenium = "^4.25.0"
+requests = "^2.31.0"
+python-dotenv = "^1.0.1"
+openai = "^1.52.0"
+psutil = "^6.1.0"
+pyinstaller = "^6.11.0"
+getmac = "^0.9.5"
+seleniumbase = "^4.31.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,56 @@
+Custom Freemium and Subscription License
+LICENSE AGREEMENT
+
+This License Agreement ("Agreement") governs the terms under which users ("You" or "User") may access and use the software application ("App"), available in both a free, limited version ("Free Version") and a premium version available through a subscription ("Premium Version").
+1. Grant of License
+
+    Free Version: You are granted a non-exclusive, non-transferable license to use the Free Version of the App for personal, non-commercial purposes. The Free Version comes with limited features, as specified within the App.
+    Premium Version: Upon payment of the applicable subscription fees, You are granted a non-exclusive, non-transferable license to access the Premium Version of the App, which unlocks full features and functionality. The Premium Version is subject to the terms outlined in this Agreement.
+
+2. Scope of Use
+
+    Free Version Limitations: The Free Version is restricted in functionality and may display limitations such as feature restrictions, limited access to services, or time-bound usage. No modifications, redistribution, or reverse-engineering of the Free Version is permitted.
+    Premium Version Access: The Premium Version offers full access to all features of the App. This license is valid for the duration of the active subscription, subject to periodic renewal as per the selected subscription plan (e.g., monthly or annually).
+
+3. Subscription Terms
+
+    Fees and Billing: Subscription to the Premium Version requires payment of a recurring fee, which will be automatically billed on a monthly or annual basis unless canceled. You agree to provide accurate and complete payment information and authorize recurring payments.
+    Automatic Renewal: Subscriptions automatically renew unless canceled by the User prior to the end of the current billing period. Fees for the new subscription term will be charged at the time of renewal.
+    Cancellation: You may cancel your subscription at any time through the account management interface. Upon cancellation, access to Premium Version features will be revoked, and You will revert to the Free Version.
+
+4. License Restrictions
+
+You are not permitted to:
+
+    Copy, modify, distribute, or create derivative works of the App.
+    Reverse-engineer, decompile, or disassemble the App.
+    Use the Free Version for commercial purposes.
+    Transfer the license to any third party.
+
+5. Updates and Changes
+
+The App may receive updates, modifications, or patches to improve performance or security. While the Free Version will receive limited updates, the Premium Version may receive priority updates and exclusive content. You agree that updates may be automatically installed without additional notice.
+6. Termination
+
+    Free Version: Your license to use the Free Version will remain in effect until terminated by either party. We reserve the right to terminate or modify access to the Free Version at any time without notice.
+    Premium Version: Your license to use the Premium Version will remain in effect as long as Your subscription is active. Failure to renew your subscription will result in the termination of access to the Premium Version.
+
+7. Intellectual Property
+
+The App, including all intellectual property rights, remains the exclusive property of the App developer ("We" or "Us"). This Agreement does not grant You ownership of the App or its content.
+8. Liability and Warranties
+
+    The App is provided "as is" without warranties of any kind, either express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, and non-infringement.
+    We shall not be held liable for any damages arising out of the use or inability to use the App, including but not limited to direct, indirect, incidental, consequential, or punitive damages.
+
+9. Privacy Policy
+
+By using the App, You consent to the collection, storage, and processing of personal data as outlined in our Privacy Policy. You agree that Your data may be used for the purposes of improving the App and offering personalized services.
+10. Governing Law
+
+This Agreement shall be governed by and construed in accordance with the laws of [Your Jurisdiction]. Any disputes arising from this Agreement will be resolved in the courts of [Your Jurisdiction].
+11. Amendments
+
+We reserve the right to modify or update this Agreement at any time. Users will be notified of any changes, and continued use of the App will constitute acceptance of the updated terms.
+
+Acceptance of Terms By downloading, installing, or using the App, whether the Free Version or Premium Version, You agree to be bound by the terms of this License Agreement.
