@@ -102,14 +102,12 @@ class LicenseManager:
     def prompt_for_serial_number(self):
         """Prompts the user to input their email and serial number after receiving the email."""
         email = simpledialog.askstring("License Verification", "Enter your email:")
-        serial_number = simpledialog.askstring("License Verification", "Enter your Serial Number:")
 
-        if not (email and serial_number):
-            messagebox.showerror("License Verification", "Both email and serial number are required.")
+        if not (email):
+            messagebox.showerror("License Verification", "Email is required.")
             return False
 
         self.email = email
-        self.serial_number = serial_number
         self.save_license()
         license_record = self.verify_license()
 
@@ -148,9 +146,6 @@ class LicenseManager:
                 self.LICENSED = True
                 self.PLAN_TYPE = license_record["type"]
                 print(f"License valid. Plan type: {self.PLAN_TYPE}")
-            else:
-                print("Invalid or expired license. Prompting for serial number input...")
-                self.prompt_for_serial_number()
         else:
             print("No license file found. Prompting for registration...")
             if self.register_license():

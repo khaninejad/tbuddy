@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import subprocess
@@ -16,6 +17,13 @@ from update_checker import UpdateChecker
 CONFIG_FILE = "config.json"
 LICENSED = False
 print(f"Application Version: {__version__}")
+
+logging.basicConfig(
+    filename="bot_errors.log", 
+    filemode='a', 
+    level=logging.ERROR, 
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 class BotGUI:
     def __init__(self, master):
@@ -302,32 +310,35 @@ class BotGUI:
 
     def start_bot(self, user, time_label):
         """Start the bot for the selected user."""
-        username = user["username"]
-        if username in self.processes:
-            messagebox.showwarning("Process Running", "A bot for this user is already running.")
-            return
+        try:
+            username = user["username"]
+            if username in self.processes:
+                messagebox.showwarning("Process Running", "A bot for this user is already running.")
+                return
 
-        
-        command = [sys.executable, "bot.py", user["username"], user["password"], user["stream_username"], user["game_name"], user["openai_api_key"], user["stream_language"]]
-        
-        
-        process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            
+            command = [sys.executable, "bot.py", user["username"], user["password"], user["stream_username"], user["game_name"], user["openai_api_key"], user["stream_language"]]
+            
+            
+            process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-        self.processes[username] = process
-        self.start_times[username] = time.time()
+            self.processes[username] = process
+            self.start_times[username] = time.time()
 
-        
-        self.open_console(user)
+            
+            self.open_console(user)
 
-        
-        thread = threading.Thread(target=self.update_timer, args=(username, time_label), daemon=True)
-        thread.start()
-        self.threads[username] = thread
+            
+            thread = threading.Thread(target=self.update_timer, args=(username, time_label), daemon=True)
+            thread.start()
+            self.threads[username] = thread
 
-        
-        output_thread = threading.Thread(target=self.read_output, args=(process, username), daemon=True)
-        output_thread.start()
-
+            
+            output_thread = threading.Thread(target=self.read_output, args=(process, username), daemon=True)
+            output_thread.start()
+        except Exception as e:
+            logging.error(f"Failed to start bot for user {user['username']}: {e}")
+            messagebox.showerror("Error", f"An error occurred: {e}")
         
 
     def update_timer(self, username, time_label):
@@ -345,6 +356,10 @@ class BotGUI:
 
         
         while True:
+            error_output = process.stderr.readline()  
+            if error_output:
+                logging.error(f"Error in bot process for user {username}: {error_output}")
+
             output = process.stdout.readline()  
             if output == '' and process.poll() is not None:
                 break
