@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 import requests
 from tkinter import messagebox, simpledialog
 from device import get_device_id  # Assuming this correctly fetches the device_id
@@ -102,12 +103,14 @@ class LicenseManager:
     def prompt_for_serial_number(self):
         """Prompts the user to input their email and serial number after receiving the email."""
         email = simpledialog.askstring("License Verification", "Enter your email:")
+        serial_number = simpledialog.askstring("License Verification", "Enter your Serial Number:")
 
-        if not (email):
-            messagebox.showerror("License Verification", "Email is required.")
+        if not (email and serial_number):
+            messagebox.showerror("License Verification", "Both email and serial number are required.")
             return False
 
         self.email = email
+        self.serial_number = serial_number
         self.save_license()
         license_record = self.verify_license()
 
@@ -133,6 +136,8 @@ class LicenseManager:
             json.dump(license_data, license_file)
 
         print(f"License saved for {self.email}.")
+        python = sys.executable
+        os.execl(python, python, *sys.argv)
 
     def check_license_on_startup(self):
         """Checks if a saved license exists and verifies it, otherwise prompts registration."""
