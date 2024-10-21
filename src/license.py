@@ -3,7 +3,8 @@ import json
 import sys
 import requests
 from tkinter import messagebox, simpledialog
-from device import get_device_id  # Assuming this correctly fetches the device_id
+from device import get_device_id
+from utils import print_error, print_info  # Assuming this correctly fetches the device_id
 
 LICENSE_FILE = "license.json"
 
@@ -30,8 +31,6 @@ class LicenseManager:
             "email": self.email
         })
         
-        print(payload)
-
         headers = {'Content-Type': 'application/json'}
 
         try:
@@ -60,7 +59,7 @@ class LicenseManager:
             with open(LICENSE_FILE, "r") as f:
                 license_data = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
-            print("Error: License file not found or corrupt.")
+            print_error("Error: License file not found or corrupt.")
             return False
 
         device_id = license_data.get("device_id")
@@ -68,7 +67,7 @@ class LicenseManager:
         serial_number = license_data.get("serial_number")
 
         if not all([device_id, email, serial_number]):
-            print("Error: Missing required fields in license data.")
+            print_error("Error: Missing required fields in license data.")
             return False
 
         url = "https://jzf859i862.execute-api.eu-west-1.amazonaws.com/default/license-verify"
@@ -91,13 +90,13 @@ class LicenseManager:
                     self.PLAN_TYPE = license_record["type"]
                     return license_record
                 else:
-                    print("Error: 'licenseRecord' not found in response.")
+                    print_error("Error: 'licenseRecord' not found in response.")
                     return False
             else:
-                print(f"Error: Request failed with status code {response.status_code}")
+                print_error(f"Error: Request failed with status code {response.status_code}")
                 return False
         except requests.RequestException as e:
-            print(f"Error: HTTP request failed: {e}")
+            print_error(f"Error: HTTP request failed: {e}")
             return False
 
     def prompt_for_serial_number(self):
@@ -135,23 +134,23 @@ class LicenseManager:
         with open(LICENSE_FILE, "w") as license_file:
             json.dump(license_data, license_file)
 
-        print(f"License saved for {self.email}.")
+        print_info(f"License saved for {self.email}.")
         python = sys.executable
         os.execl(python, python, *sys.argv)
 
     def check_license_on_startup(self):
         """Checks if a saved license exists and verifies it, otherwise prompts registration."""
-        print("Checking for license on startup...")
+        print_info("Checking for license on startup...")
 
         if os.path.exists(LICENSE_FILE):
-            print(f"License file {LICENSE_FILE} found.")
+            print_info(f"License file {LICENSE_FILE} found.")
             license_record = self.verify_license()
 
             if license_record:
                 self.LICENSED = True
                 self.PLAN_TYPE = license_record["type"]
-                print(f"License valid. Plan type: {self.PLAN_TYPE}")
+                print_info(f"License valid. Plan type: {self.PLAN_TYPE}")
         else:
-            print("No license file found. Prompting for registration...")
+            print_info("No license file found. Prompting for registration...")
             if self.register_license():
                 self.check_license_on_startup()

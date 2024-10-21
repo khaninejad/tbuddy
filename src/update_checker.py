@@ -5,6 +5,8 @@ import os
 import zipfile
 import shutil
 
+from utils import print_error, print_info
+
 class UpdateChecker:
     def __init__(self, current_version, app_dir=None):
         """
@@ -22,22 +24,22 @@ class UpdateChecker:
         Check for updates by comparing the current version with the last release.
         If an update is available, download, extract, and install the new version.
         """
-        print(f"Current Version: {self.current_version}")
+        print_info(f"Current Version: {self.current_version}")
 
         response = self._get_last_release_info()
         if response:
             last_release = response["last_release"]
             last_release_version = last_release["version"]
-            print(f"Last Release Version: {last_release_version}")
+            print_info(f"Last Release Version: {last_release_version}")
 
             if self.compare_versions(self.current_version, last_release_version) < 0:
-                print("Update available!")
+                print_info("Update available!")
                 return True, last_release
             else:
-                print("No updates available.")
+                print_info("No updates available.")
                 return False, None
         else:
-            print("Failed to check for updates.")
+            print_error("Failed to check for updates.")
 
     def _get_last_release_info(self):
         """
@@ -48,7 +50,7 @@ class UpdateChecker:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            print(f"Error fetching update info: {e}")
+            print_error(f"Error fetching update info: {e}")
             return None
 
     def compare_versions(self, v1, v2):
@@ -81,7 +83,7 @@ class UpdateChecker:
         Download the update based on the current platform.
         """
         current_platform = platform.system()
-        print(f"Current Platform: {current_platform}")
+        print_info(f"Current Platform: {current_platform}")
 
         if current_platform == "Darwin":  # macOS
             download_url = last_release["macos"]
@@ -90,7 +92,7 @@ class UpdateChecker:
         elif current_platform == "Linux":
             download_url = last_release["linux"]
         else:
-            print("Unsupported platform.")
+            print_error("Unsupported platform.")
             return
 
         # Download the update
@@ -101,7 +103,7 @@ class UpdateChecker:
                 for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
 
-        print(f"Update downloaded: {update_filename}")
+        print_info(f"Update downloaded: {update_filename}")
         return update_filename
 
     def extract_update(self, last_release, update_filename):
@@ -113,9 +115,9 @@ class UpdateChecker:
                 extract_dir = os.path.join(self.app_dir, f"update_{last_release['version']}")
                 os.makedirs(extract_dir, exist_ok=True)
                 zip_ref.extractall(extract_dir)
-            print(f"Update extracted to: {extract_dir}")
+            print_info(f"Update extracted to: {extract_dir}")
         except zipfile.BadZipFile as e:
-            print(f"Error extracting update: {e}")
+            print_error(f"Error extracting update: {e}")
 
     def install_update(self, last_release):
         """
@@ -133,6 +135,6 @@ class UpdateChecker:
                 os.makedirs(os.path.dirname(dest_path), exist_ok=True)
                 shutil.copy2(file_path, dest_path)
 
-        print("Update installed successfully!")
+        print_info("Update installed successfully!")
         # Clean up the extract directory
         shutil.rmtree(extract_dir)

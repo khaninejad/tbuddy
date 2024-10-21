@@ -5,7 +5,7 @@ import requests
 import os
 
 from load_assistant_type import load_assistant_type
-from utils import GREEN_TEXT, RED_TEXT, RESET_TEXT, countdown_timer, print_error
+from utils import GREEN_TEXT, RED_TEXT, RESET_TEXT, countdown_timer, print_error, print_info
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -20,18 +20,18 @@ def is_channel_offline(driver):
         )
         
         
-        print("Channel is online.")
+        print_info("Channel is online.")
         return False
     except Exception as e:
         
-        print("Channel is offline or an error occurred.")
+        print_info("Channel is offline or an error occurred.")
         return True
     
 def twitch_login(driver, username, password, auth_url="https://twitch.tv/login"):
     """Login to Twitch using the provided username and password."""
     try:
         
-        print("Navigating to the Twitch login page...")
+        print_info("Navigating to the Twitch login page...")
         driver.uc_open(auth_url)
         login_wait_interval =5
         countdown_timer(login_wait_interval, "Waiting for {} seconds before login...")
@@ -62,7 +62,7 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
             modal_header = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, '//h2[@id="modal-root-header" and contains(text(), "Verify login code")]'))
             )
-            print("2FA modal detected")
+            print_info("2FA modal detected")
 
             
             verification_code = input(f"{RED_TEXT}Enter the 6-digit verification code sent to your device: {RESET_TEXT}")
@@ -77,7 +77,7 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
                     EC.presence_of_element_located((By.CSS_SELECTOR, f'input[aria-label="Digit {i}"]'))
                 )
                 digit_input.send_keys(digit)
-                print(f"Entered digit {digit}")
+                print_info(f"Entered digit {digit}")
 
             
             wait_submit_button = 10
@@ -87,15 +87,15 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
                 EC.presence_of_element_located((By.CSS_SELECTOR, 'div[data-a-target="tw-core-button-label-text"]'))
             )
             submit_button.click()
-            print("Submit button clicked")
+            print_info("Submit button clicked")
             
             wait_login_compleation = 10
             countdown_timer(wait_login_compleation, "Wait {} for login compleation")
             time.sleep(wait_login_compleation)
-            print(f"{GREEN_TEXT}Successfully logged in as {username}{RESET_TEXT}")
+            print_info(f"{GREEN_TEXT}Successfully logged in as {username}{RESET_TEXT}")
         
         except Exception as e:
-            print(f"No 2FA required or error occurred during 2FA process")
+            print_error(f"No 2FA required or error occurred during 2FA process")
             pass  
         
     except Exception as e:
@@ -123,7 +123,7 @@ def post_twitch_message(broadcaster_id, sender_id, message, client_id, access_to
         response = requests.post(url, headers=headers, json=payload)
         
         if response.status_code == 204:
-            print(f"{GREEN_TEXT}Successfully posted message: {message}{RESET_TEXT}")
+            print_info(f"{GREEN_TEXT}Successfully posted message: {message}{RESET_TEXT}")
         else:
             print_error(f"Failed to post message. Status code: {response.status_code}. Response: {response.text}")
     except Exception as e:
@@ -148,7 +148,7 @@ def click_start_watching(driver):
                 (By.XPATH, '//button[@data-a-target="content-classification-gate-overlay-start-watching-button"]')
             )
         ).click()
-        print("Clicked 'Start Watching' button.")
+        print_info("Clicked 'Start Watching' button.")
     except Exception as e:
         print_error(f"No 'Start Watching' button found")
 
@@ -161,7 +161,7 @@ def dismiss_subtember_callout(driver):
                 (By.XPATH, '//button[@aria-label="Dismiss Subtember Callout"]')
             )
         ).click()
-        print("Dismissed 'Subtember Callout' ad.")
+        print_info("Dismissed 'Subtember Callout' ad.")
     except Exception as e:
         print_error(f"No 'Subtember Callout' button found or error occurred: {e}")
 
@@ -174,7 +174,7 @@ def accept_cookies(driver):
                 (By.XPATH, '//button[@data-a-target="consent-banner-accept"]')
             )
         ).click()
-        print("Clicked 'Accept' on the cookies consent banner.")
+        print_info("Clicked 'Accept' on the cookies consent banner.")
     except Exception as e:
         print_error(f"No 'Accept' button for cookies consent found or error occurred")
 
@@ -187,7 +187,7 @@ def click_captions_button(driver):
         video_player = driver.find_element(By.XPATH, '//div[contains(@class, "video-player")]')
         actions = ActionChains(driver)
         actions.move_to_element(video_player).perform()
-        print("Hovered over video player.")
+        print_info("Hovered over video player.")
 
         
         WebDriverWait(driver, 10).until(
@@ -195,7 +195,7 @@ def click_captions_button(driver):
                 (By.XPATH, '//button[@aria-label="Captions (c)"]')
             )
         ).click()
-        print("Clicked 'Captions (CC)' button.")
+        print_info("Clicked 'Captions (CC)' button.")
     except Exception as e:
         print_error(f"No 'Captions (CC)' button found or error occurred:")
 
@@ -215,12 +215,12 @@ def take_screenshots_and_describe(driver, interval_range, run_duration, output_f
             
             screenshot_filename = os.path.join(output_folder, f'screenshot_{screenshot_count}.png')
             driver.save_screenshot(screenshot_filename)
-            print(f"Screenshot {screenshot_count} saved as {screenshot_filename} (ignored)")
+            print_info(f"Screenshot {screenshot_count} saved as {screenshot_filename} (ignored)")
         else:
             
             screenshot_filename = os.path.join(output_folder, f'screenshot_{screenshot_count}.png')
             driver.save_screenshot(screenshot_filename)
-            print(f"Screenshot {screenshot_count} saved as {screenshot_filename}")
+            print_info(f"Screenshot {screenshot_count} saved as {screenshot_filename}")
 
             
             description = describe_image(screenshot_filename, api_key, game_name)
@@ -228,9 +228,9 @@ def take_screenshots_and_describe(driver, interval_range, run_duration, output_f
                 description_filename = os.path.join(description_folder, f'screenshot_{screenshot_count}.txt')
                 with open(description_filename, 'w') as desc_file:
                     desc_file.write(description)
-                print(f"Description saved as {description_filename}")
+                print_info(f"Description saved as {description_filename}")
             else:
-                print(f"{RED_TEXT}No description returned for screenshot {screenshot_count}{RESET_TEXT}")
+                print_info(f"{RED_TEXT}No description returned for screenshot {screenshot_count}{RESET_TEXT}")
 
             
             chat_messages = get_last_5_chat_messages(driver)
@@ -243,15 +243,15 @@ def take_screenshots_and_describe(driver, interval_range, run_duration, output_f
                 
                 random_comment = random.choice(comment_list)
                 post_twitch_message(broadcaster_id, sender_id, random_comment, client_id, access_token)  
-                print(f"{GREEN_TEXT}Posted comment: {random_comment}{RESET_TEXT}")
+                print_info(f"{GREEN_TEXT}Posted comment: {random_comment}{RESET_TEXT}")
 
                 
                 comment_filename = os.path.join(comment_folder, f'comments.txt')
                 with open(comment_filename, 'a') as comment_file:
                     comment_file.write(comments + "\n")
-                print(f"Comments saved as {comment_filename}")
+                print_info(f"Comments saved as {comment_filename}")
             else:
-                print(f"{RED_TEXT}No comments generated for screenshot {screenshot_count}{RESET_TEXT}")
+                print_error(f"{RED_TEXT}No comments generated for screenshot {screenshot_count}{RESET_TEXT}")
 
         screenshot_count += 1
         min_interval, max_interval = map(int, interval_range.split(','))
@@ -264,7 +264,7 @@ def wait_for_content(driver, timeout=20):
         WebDriverWait(driver, timeout).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, 'video'))  
         )
-        print("Content is visible")
+        print_info("Content is visible")
     except Exception as e:
         print_error(f"Error while waiting for content")
 
@@ -331,7 +331,7 @@ def toggle_side_nav(driver):
             EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-a-target="side-nav-arrow"]'))
         )
         toggle_button.click()
-        print("Toggled the side navigation.")
+        print_info("Toggled the side navigation.")
     except Exception as e:
         print_error(f"Error while toggling side navigation")
 

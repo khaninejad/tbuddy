@@ -3,6 +3,8 @@ import uuid
 from getmac import get_mac_address
 import subprocess
 
+from utils import print_error, print_info
+
 def get_disk_serial():
     """Retrieve the hard disk serial number based on the operating system."""
     try:
@@ -17,7 +19,7 @@ def get_disk_serial():
         else:
             serial = "unknown"
     except Exception as e:
-        print(f"Error retrieving disk serial: {e}")
+        print_error(f"Error retrieving disk serial: {e}")
         serial = "unknown"
     return serial
 
@@ -61,4 +63,4 @@ def get_device_id():
 
 
 device_id = get_device_id()
-print("Device ID:", device_id)
+print_info(f"Device ID: {device_id}")

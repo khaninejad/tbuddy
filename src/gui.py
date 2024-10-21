@@ -12,11 +12,12 @@ from __version__ import __version__
 from license import LicenseManager
 from load_assistant_type import load_assistant_types
 from update_checker import UpdateChecker
+from utils import print_info
 
 
 CONFIG_FILE = "config.json"
 LICENSED = False
-print(f"Application Version: {__version__}")
+print_info(f"Application Version: {__version__}")
 
 logging.basicConfig(
     filename="bot_errors.log", 
@@ -188,10 +189,10 @@ class BotGUI:
         """Add a new user with a popup dialog."""
         
         plan_type = self.license_manager.PLAN_TYPE
-        print(f"Current plan type: {plan_type}")
+        print_info(f"Current plan type: {plan_type}")
 
         
-        print(f"Number of existing users: {len(self.users)}")
+        print_info(f"Number of existing users: {len(self.users)}")
 
         
         if plan_type == "FREE" and len(self.users) >= 1:
@@ -199,10 +200,10 @@ class BotGUI:
                 "Upgrade to Premium",
                 "You are currently on the Free plan, which allows only one user. Please upgrade to Premium to add more users."
             )
-            print("User limit reached. Prompting to upgrade to Premium.")
+            print_info("User limit reached. Prompting to upgrade to Premium.")
             return  
 
-        print("User limit not reached. Showing the user form.")
+        print_info("User limit not reached. Showing the user form.")
         
         self.show_user_form()
 

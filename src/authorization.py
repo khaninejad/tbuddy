@@ -7,6 +7,7 @@ from urllib.parse import urlparse, parse_qs
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from twitch import twitch_login
+from utils import print_error, print_info
 
 def get_token_file(user_id, base_folder="users"):
     """Get the token file path for a specific user."""
@@ -61,7 +62,7 @@ def get_access_token_with_code(client_id, client_secret, redirect_uri, code):
         data = response.json()
         return data
     else:
-        print(f"Failed to get access token. Status code: {response.status_code}. Response: {response.text}")
+        print_error(f"Failed to get access token. Status code: {response.status_code}. Response: {response.text}")
         return None
 
 class TwitchOAuthHandler(BaseHTTPRequestHandler):
@@ -87,9 +88,7 @@ class TwitchOAuthHandler(BaseHTTPRequestHandler):
 def get_authorization_code(driver, client_id, redirect_uri, scopes, username, password):
     """Open the Twitch OAuth authorization URL and start a local server to get the authorization code."""
     auth_url = generate_auth_url(client_id, redirect_uri, scopes)
-    print(password)
-
-    
+  
     
     twitch_login(driver, username, password, auth_url)
 
@@ -97,7 +96,7 @@ def get_authorization_code(driver, client_id, redirect_uri, scopes, username, pa
     server_address = ('', 8080)  
     httpd = HTTPServer(server_address, TwitchOAuthHandler)
 
-    print("Waiting for authorization code...")
+    print_info("Waiting for authorization code...")
 
     
     httpd.handle_request()
@@ -118,14 +117,14 @@ def kill_port(port):
         if result:
             pid = result.strip().split()[-1]
             os.system(f"taskkill /PID {pid} /F")
-            print(f"Process on port {port} killed (PID: {pid}).")
+            print_info(f"Process on port {port} killed (PID: {pid}).")
         else:
-            print(f"No process found on port {port}.")
+            print_info(f"No process found on port {port}.")
     else:
         
         command = f"lsof -ti :{port} | xargs kill -9"
         os.system(command)
-        print(f"Killed process on port {port}.")
+        print_info(f"Killed process on port {port}.")
 
 def get_access_token(driver, user_id, client_id, client_secret, redirect_uri, username, password):
     """Get a new access token via the authorization code flow."""
@@ -133,10 +132,10 @@ def get_access_token(driver, user_id, client_id, client_secret, redirect_uri, us
     token_data = load_token(user_id)
     
     if token_data and not is_token_expired(token_data):
-        print(f"Using stored access token for user {user_id}.")
+        print_info(f"Using stored access token for user {user_id}.")
         return token_data['access_token']
     
-    print(f"Token expired or not found for user {user_id}, requesting new authorization...")
+    print_info(f"Token expired or not found for user {user_id}, requesting new authorization...")
 
     
     authorization_code = get_authorization_code(driver, client_id, redirect_uri, "user:write:chat user:bot", username, password)
@@ -158,12 +157,12 @@ def get_access_token(driver, user_id, client_id, client_secret, redirect_uri, us
                 'user_id': user_id
             }
             save_token(user_id, token_data)
-            print(f"New access token saved for user {user_id}: {token_data}")
+            print_info(f"New access token saved for user {user_id}: {token_data}")
             return access_token
         else:
-            print("Failed to obtain access token.")
+            print_error("Failed to obtain access token.")
     else:
-        print("Failed to retrieve authorization code.")
+        print_error("Failed to retrieve authorization code.")
     
     return None
 
@@ -176,8 +175,8 @@ def validate_token(access_token, client_id):
     response = requests.get("https://id.twitch.tv/oauth2/validate", headers=headers)
     
     if response.status_code == 200:
-        print(f"Token is valid. Scopes: {response.json()['scopes']}")
+        print_info(f"Token is valid. Scopes: {response.json()['scopes']}")
         return True
     else:
-        print(f"Invalid token. Status code: {response.status_code}. Response: {response.text}")
+        print_error(f"Invalid token. Status code: {response.status_code}. Response: {response.text}")
         return False

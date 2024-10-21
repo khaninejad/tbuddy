@@ -1,5 +1,7 @@
 import os
 
+from utils import print_error
+
 def load_assistant_type(assistant_name):
     """Load assistant type from a text file."""
     assistants_dir = os.path.join(os.path.dirname(__file__), 'assistants')
@@ -10,7 +12,7 @@ def load_assistant_type(assistant_name):
             assistant_type = file.read().strip()
             return assistant_type
     except FileNotFoundError:
-        print(f"Assistant type '{assistant_name}' not found.")
+        print_error(f"Assistant type '{assistant_name}' not found.")
         return None
     
 def load_assistant_types():
