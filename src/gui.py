@@ -17,6 +17,8 @@ from utils import print_info
 
 
 LICENSED = False
+USAGE_TIME_LIMIT = 30 * 1 
+USAGE_TIME_LEFT = USAGE_TIME_LIMIT
 print_info(f"Application Version: {__version__}")
 
 logging.basicConfig(
@@ -47,6 +49,7 @@ class BotGUI:
                 self.setup_premium_ui()
             else:
                 self.setup_free_ui()
+                self.start_usage_timer()
         else:
             self.setup_registration_ui()
 
@@ -247,7 +250,7 @@ class BotGUI:
                     "Process Running", "A bot for this user is already running."
                 )
                 return
-
+            
             command = [
                 sys.executable,
                 "bot.py",
@@ -283,6 +286,24 @@ class BotGUI:
         except Exception as e:
             logging.error(f"Failed to start bot for user {user['username']}: {e}")
             messagebox.showerror("Error", f"An error occurred: {e}")
+
+    def update_timer(self, username, time_label):
+        """Update the elapsed time for the bot."""
+        while username in self.processes:
+            elapsed_time = time.time() - self.start_times[username]
+            minutes, seconds = divmod(int(elapsed_time), 60)
+            time_label.config(text=f"{minutes:02}:{seconds:02}")
+
+            if self.license_manager.PLAN_TYPE == "FREE" and elapsed_time >= 30 * 1:
+                # If free plan limit is reached, stop the bot
+                self.stop_bot({"username": username})  # Pass a dummy user dict
+                messagebox.showinfo(
+                    "Limit Reached",
+                    "You have reached the 30-minute limit for free users. Please upgrade to continue using the bot."
+                )
+                break  # Exit the timer loop
+
+            time.sleep(1)
 
     def stop_bot(self, user):
         """Stop the bot for the selected user."""
@@ -431,13 +452,34 @@ class BotGUI:
         save_button = tk.Button(user_window, text="Save", command=save_user)
         save_button.grid(row=7, column=1, pady=5)
 
-    def update_timer(self, username, time_label):
-        """Update the elapsed time for the bot."""
-        while username in self.processes:
-            elapsed_time = time.time() - self.start_times[username]
-            minutes, seconds = divmod(int(elapsed_time), 60)
-            time_label.config(text=f"{minutes:02}:{seconds:02}")
-            time.sleep(1)
+    def start_usage_timer(self):
+        """Start a timer for free usage limit of 30 minutes."""
+        self.update_usage_time()
+        self.master.after(1000, self.check_usage_time)
+    
+    def update_usage_time(self):
+        """Reduce the usage time left by 1 second every second."""
+        global USAGE_TIME_LEFT
+        if USAGE_TIME_LEFT > 0:
+            USAGE_TIME_LEFT -= 1
+
+    def check_usage_time(self):
+        """Check if the usage time limit is reached."""
+        if USAGE_TIME_LEFT <= 0:
+            messagebox.showwarning(
+                "Usage Time Expired", 
+                "Your usage time has expired. Please register for a valid license."
+            )
+            self.disable_features()
+        else:
+            self.master.after(1000, self.check_usage_time) 
+            
+    def disable_features(self):
+        """Disable certain features if the time limit has expired."""
+        # Example: disable the Add User button
+        self.add_user_button.config(state=tk.DISABLED)
+        # Disable other features as needed        
+            
 
     def read_output(self, process, username):
         """Read the output from the bot process and store it in memory."""
