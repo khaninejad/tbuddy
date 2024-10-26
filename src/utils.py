@@ -3,43 +3,45 @@ from logging.handlers import RotatingFileHandler
 import sys
 import time
 
-# Define constants for colors
+
 WHITE_TEXT = "\033[97m"
 RED_TEXT = "\033[91m"
 RESET_TEXT = "\033[0m"
 GREEN_TEXT = "\033[92m"
 
-# Log file configuration
+
 log_filename = f"bot_errors.log"
-max_log_size = 5 * 1024 * 1024  # Max log file size: 5 MB
-backup_count = 5  # Keep up to 5 backup log files
+max_log_size = 5 * 1024 * 1024
+backup_count = 5
 
-# Configure rotating log handler
 log_handler = RotatingFileHandler(
-    log_filename, 
-    mode='a',  # Append mode
-    maxBytes=max_log_size,  # Max size per log file in bytes
-    backupCount=backup_count,  # Number of backup files to retain
-    encoding='utf-8',
-    delay=0
+    log_filename,
+    mode="a",
+    maxBytes=max_log_size,
+    backupCount=backup_count,
+    encoding="utf-8",
+    delay=0,
 )
 
-# Configure logging
+
 logging.basicConfig(
-    handlers=[log_handler], 
-    level=logging.INFO, 
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    handlers=[log_handler],
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
 )
+
 
 def print_error(message):
     """Print an error message in red."""
     print(f"{RED_TEXT}Error: {message}{RESET_TEXT}")
     logging.error(message)
 
+
 def print_info(message):
     """Print an info message in white."""
     print(f"{WHITE_TEXT}{message}{RESET_TEXT}")
     logging.info(message)
+
 
 def countdown_timer(seconds, message_template="Waiting for {} seconds before login..."):
     """Print a countdown timer that updates every second."""

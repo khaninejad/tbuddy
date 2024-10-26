@@ -8,6 +8,7 @@ import shutil
 from config import BASE_URL
 from utils import print_error, print_info
 
+
 class UpdateChecker:
     def __init__(self, current_version, app_dir=None):
         """
@@ -18,7 +19,9 @@ class UpdateChecker:
         """
         self.current_version = current_version
         self.update_url = f"{BASE_URL}/release-check"
-        self.app_dir = app_dir if app_dir else os.path.dirname(os.path.abspath(__file__))
+        self.app_dir = (
+            app_dir if app_dir else os.path.dirname(os.path.abspath(__file__))
+        )
 
     def check_for_updates(self):
         """
@@ -62,8 +65,8 @@ class UpdateChecker:
             0 if v1 == v2
             1 if v1 > v2
         """
-        v1_parts = list(map(int, v1.split('.')))
-        v2_parts = list(map(int, v2.split('.')))
+        v1_parts = list(map(int, v1.split(".")))
+        v2_parts = list(map(int, v2.split(".")))
 
         for part1, part2 in zip(v1_parts, v2_parts):
             if part1 < part2:
@@ -100,7 +103,7 @@ class UpdateChecker:
         update_filename = f"tbuddy-{current_platform}-v{last_release['version']}.zip"
         with requests.get(download_url, stream=True) as r:
             r.raise_for_status()
-            with open(update_filename, 'wb') as f:
+            with open(update_filename, "wb") as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
 
@@ -112,8 +115,10 @@ class UpdateChecker:
         Extract the downloaded update zip file.
         """
         try:
-            with zipfile.ZipFile(update_filename, 'r') as zip_ref:
-                extract_dir = os.path.join(self.app_dir, f"update_{last_release['version']}")
+            with zipfile.ZipFile(update_filename, "r") as zip_ref:
+                extract_dir = os.path.join(
+                    self.app_dir, f"update_{last_release['version']}"
+                )
                 os.makedirs(extract_dir, exist_ok=True)
                 zip_ref.extractall(extract_dir)
             print_info(f"Update extracted to: {extract_dir}")

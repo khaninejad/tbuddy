@@ -8,7 +8,14 @@ from dotenv import load_dotenv
 from seleniumbase import Driver
 
 from authorization import get_access_token, validate_token
-from twitch import accept_cookies, click_captions_button, click_start_watching, take_screenshots_and_describe, toggle_side_nav, twitch_login
+from twitch import (
+    accept_cookies,
+    click_captions_button,
+    click_start_watching,
+    take_screenshots_and_describe,
+    toggle_side_nav,
+    twitch_login,
+)
 from utils import print_error, countdown_timer
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -20,22 +27,21 @@ user_drivers = {}
 def get_user_id(username, client_id, access_token):
     """Fetch user ID (broadcaster or sender) based on username"""
     url = f"https://api.twitch.tv/helix/users?login={username}"
-    
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'Client-Id': client_id
-    }
-    
+
+    headers = {"Authorization": f"Bearer {access_token}", "Client-Id": client_id}
+
     response = requests.get(url, headers=headers)
-    
+
     if response.status_code == 200:
-        user_data = response.json().get('data', [])
+        user_data = response.json().get("data", [])
         if user_data:
-            return user_data[0]['id']  
+            return user_data[0]["id"]
         else:
             print(f"No user found with username: {username}")
     else:
-        print_error(f"Fetching user data. Status code: {response.status_code}. Response: {response.text}")
+        print_error(
+            f"Fetching user data. Status code: {response.status_code}. Response: {response.text}"
+        )
     return None
 
 
@@ -44,9 +50,9 @@ def clean_screenshot_folder(parent_folder, output_folder_name):
     if parent_folder is None or output_folder_name is None:
         print_error("parent_folder or output_folder_name is None.")
         return
-    
+
     output_folder = os.path.join(parent_folder, output_folder_name)
-    
+
     if os.path.exists(output_folder):
         for filename in os.listdir(output_folder):
             file_path = os.path.join(output_folder, filename)
@@ -69,13 +75,15 @@ def load_all_credentials(json_file="config.json"):
     except FileNotFoundError:
         raise FileNotFoundError(f"Credentials file {json_file} not found.")
     except json.JSONDecodeError:
-        raise ValueError(f"Error parsing {json_file}. Please ensure it contains valid JSON.")
+        raise ValueError(
+            f"Error parsing {json_file}. Please ensure it contains valid JSON."
+        )
 
 
 def get_credentials_for_user(username, json_file="config.json"):
     """Load the username and password from the JSON file for a specific user."""
     credentials = load_all_credentials(json_file)
-    
+
     if username in credentials:
         return credentials[username]["username"], credentials[username]["password"]
     else:
@@ -87,21 +95,25 @@ def create_new_chrome_instance(sender_id):
 
     if not os.path.exists(user_data_dir):
         os.makedirs(user_data_dir)
-    
-    driver = Driver(uc=True, headless2=True, user_data_dir=user_data_dir, chromium_arg="--mute-audio")
-    
+
+    driver = Driver(
+        uc=True,
+        headless2=True,
+        user_data_dir=user_data_dir,
+        chromium_arg="--mute-audio",
+    )
+
     return driver
 
 
 def get_chrome_instance(username, json_file="config.json"):
     """Return a Chrome instance for the given username, creating one if necessary."""
     credentials = load_all_credentials(json_file)
-    
-    
+
     usernames = [user["username"] for user in credentials["users"]]
-    
+
     if username in usernames:
-        
+
         if username not in user_drivers:
             driver = create_new_chrome_instance(username)
             user_drivers[username] = driver
@@ -113,7 +125,9 @@ def get_chrome_instance(username, json_file="config.json"):
 def ensure_folders_exist(username):
     """Ensure the required folders exist under the user folder."""
     base_user_folder = os.path.join("users", username)
-    os.makedirs(base_user_folder, exist_ok=True)  # Create user folder if it doesn't exist
+    os.makedirs(
+        base_user_folder, exist_ok=True
+    )  # Create user folder if it doesn't exist
 
     # Create subfolders for the user
     comments_folder = os.path.join(base_user_folder, "comments")
@@ -130,15 +144,16 @@ def ensure_folders_exist(username):
         "comments": comments_folder,
         "screenshots": screenshots_folder,
         "game_analysis": game_analysis_folder,
-        "user_profile": user_profile_folder
+        "user_profile": user_profile_folder,
     }
+
 
 def clean_folder(folder_path):
     """Remove all files in the specified folder."""
     if folder_path is None:
         print_error("Folder path is None.")
         return
-    
+
     if os.path.exists(folder_path):
         for filename in os.listdir(folder_path):
             file_path = os.path.join(folder_path, filename)
@@ -154,10 +169,11 @@ def clean_folder(folder_path):
     else:
         print_error(f"Folder {folder_path} does not exist.")
 
+
 def clean_and_ensure_folders_for_active_user(username):
     """Clean all folders for the active user and then recreate them."""
     base_user_folder = os.path.join("users", username)
-    
+
     if os.path.exists(base_user_folder):
         # Clean all subfolders
         for folder_name in ["comments", "screenshots", "game_analysis", "user_profile"]:
@@ -176,7 +192,7 @@ def clean_and_ensure_folders_for_active_user(username):
 def main():
     """Main function to start the bot."""
     print("Starting the bot...")
-    
+
     if len(sys.argv) < 4:
         print("Usage: python bot.py <username> <strean_username> <game_name>")
         sys.exit(1)
@@ -191,24 +207,23 @@ def main():
     stream_url = f"https://www.twitch.tv/{stream_username}"
 
     interval = os.getenv("SCREENSHOT_INTERVAL", "30,90")
-    run_duration = int(os.getenv("RUN_DURATION", 600))     
+    run_duration = int(os.getenv("RUN_DURATION", 600))
 
     broadcaster_id = os.getenv("TWITCH_BROADCASTER_ID")
     sender_id = os.getenv("TWITCH_SENDER_ID")
     client_id = os.getenv("TWITCH_CLIENT_ID")
     client_secret = os.getenv("TWITCH_CLIENT_SECRET")
     redirect_uri = os.getenv("TWITCH_REDIRECT_URI")
-    
-   
+
     driver = get_chrome_instance(username)
 
-    
-    access_token = get_access_token(driver, username, client_id, client_secret, redirect_uri, username, password)
+    access_token = get_access_token(
+        driver, username, client_id, client_secret, redirect_uri, username, password
+    )
     if not access_token or not validate_token(access_token, client_id):
         print_error("Invalid access token. Exiting.")
         return
 
-    
     broadcaster_id = get_user_id(stream_username, client_id, access_token)
     sender_id = get_user_id(username, client_id, access_token)
 
@@ -221,7 +236,7 @@ def main():
     comments_folder = user_folders["comments"]
     screenshots_folder = user_folders["screenshots"]
     output_folder = user_folders["game_analysis"]
-    
+
     twitch_login(driver, username, password)
 
     print("Navigating to stream URL")
@@ -229,16 +244,31 @@ def main():
     wait_stream_start = 5
     countdown_timer(wait_stream_start, "Waiting for stream to start watching...")
     time.sleep(wait_stream_start)
-    
+
     click_start_watching(driver)
     toggle_side_nav(driver)
     accept_cookies(driver)
     click_captions_button(driver)
 
-    
-    take_screenshots_and_describe(driver, interval, run_duration, screenshots_folder, output_folder, api_key, game_name, comments_folder, broadcaster_id, sender_id, client_id, access_token, stream_language, username)
+    take_screenshots_and_describe(
+        driver,
+        interval,
+        run_duration,
+        screenshots_folder,
+        output_folder,
+        api_key,
+        game_name,
+        comments_folder,
+        broadcaster_id,
+        sender_id,
+        client_id,
+        access_token,
+        stream_language,
+        username,
+    )
 
     driver.quit()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

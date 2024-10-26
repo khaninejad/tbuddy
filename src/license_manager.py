@@ -3,11 +3,10 @@ import json
 import sys
 import requests
 from tkinter import messagebox, simpledialog
-from config import BASE_URL
+from config import BASE_URL, LICENSE_FILE
 from device import get_device_id
-from utils import print_error, print_info  # Assuming this correctly fetches the device_id
+from utils import print_error, print_info
 
-LICENSE_FILE = "license.json"
 
 class LicenseManager:
     def __init__(self):
@@ -27,12 +26,9 @@ class LicenseManager:
 
         self.email = email
         url = f"{BASE_URL}/license-register"
-        payload = json.dumps({
-            "device_id": self.device_id,
-            "email": self.email
-        })
-        
-        headers = {'Content-Type': 'application/json'}
+        payload = json.dumps({"device_id": self.device_id, "email": self.email})
+
+        headers = {"Content-Type": "application/json"}
 
         try:
             response = requests.post(url, headers=headers, data=payload)
@@ -41,14 +37,22 @@ class LicenseManager:
                 self.serial_number = response_json.get("license")
 
                 if self.serial_number:
-                    messagebox.showinfo("Registration", "License registered successfully.")
+                    messagebox.showinfo(
+                        "Registration", "License registered successfully."
+                    )
                     self.save_license()
                     return True
                 else:
-                    messagebox.showerror("Registration Error", "Failed to retrieve serial number from the server.")
+                    messagebox.showerror(
+                        "Registration Error",
+                        "Failed to retrieve serial number from the server.",
+                    )
                     return False
             else:
-                messagebox.showerror("Registration Error", f"Registration failed with status code {response.status_code}.")
+                messagebox.showerror(
+                    "Registration Error",
+                    f"Registration failed with status code {response.status_code}.",
+                )
                 return False
         except requests.RequestException as e:
             messagebox.showerror("Registration Error", f"Failed to register: {e}")
@@ -72,19 +76,17 @@ class LicenseManager:
             return False
 
         url = f"{BASE_URL}/license-verify"
-        payload = json.dumps({
-            "device_id": device_id,
-            "email": email,
-            "serial_number": serial_number
-        })
+        payload = json.dumps(
+            {"device_id": device_id, "email": email, "serial_number": serial_number}
+        )
 
-        headers = {'Content-Type': 'application/json'}
+        headers = {"Content-Type": "application/json"}
 
         try:
             response = requests.post(url, headers=headers, data=payload)
             if response.status_code == 200:
                 response_json = response.json()
-                license_record = response_json.get('licenseRecord', None)
+                license_record = response_json.get("licenseRecord", None)
 
                 if license_record:
                     self.LICENSED = True
@@ -94,7 +96,9 @@ class LicenseManager:
                     print_error("Error: 'licenseRecord' not found in response.")
                     return False
             else:
-                print_error(f"Error: Request failed with status code {response.status_code}")
+                print_error(
+                    f"Error: Request failed with status code {response.status_code}"
+                )
                 return False
         except requests.RequestException as e:
             print_error(f"Error: HTTP request failed: {e}")
@@ -103,10 +107,14 @@ class LicenseManager:
     def prompt_for_serial_number(self):
         """Prompts the user to input their email and serial number after receiving the email."""
         email = simpledialog.askstring("License Verification", "Enter your email:")
-        serial_number = simpledialog.askstring("License Verification", "Enter your Serial Number:")
+        serial_number = simpledialog.askstring(
+            "License Verification", "Enter your Serial Number:"
+        )
 
         if not (email and serial_number):
-            messagebox.showerror("License Verification", "Both email and serial number are required.")
+            messagebox.showerror(
+                "License Verification", "Both email and serial number are required."
+            )
             return False
 
         self.email = email
@@ -129,7 +137,7 @@ class LicenseManager:
         license_data = {
             "email": self.email,
             "serial_number": self.serial_number,
-            "device_id": self.device_id
+            "device_id": self.device_id,
         }
 
         with open(LICENSE_FILE, "w") as license_file:
