@@ -3,6 +3,7 @@ import json
 import sys
 import requests
 from tkinter import messagebox, simpledialog
+from config import BASE_URL
 from device import get_device_id
 from utils import print_error, print_info  # Assuming this correctly fetches the device_id
 
@@ -25,7 +26,7 @@ class LicenseManager:
             return False
 
         self.email = email
-        url = "https://jzf859i862.execute-api.eu-west-1.amazonaws.com/default/license-register"
+        url = f"{BASE_URL}/license-register"
         payload = json.dumps({
             "device_id": self.device_id,
             "email": self.email
@@ -70,7 +71,7 @@ class LicenseManager:
             print_error("Error: Missing required fields in license data.")
             return False
 
-        url = "https://jzf859i862.execute-api.eu-west-1.amazonaws.com/default/license-verify"
+        url = f"{BASE_URL}/license-verify"
         payload = json.dumps({
             "device_id": device_id,
             "email": email,

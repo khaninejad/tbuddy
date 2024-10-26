@@ -5,6 +5,7 @@ import os
 import zipfile
 import shutil
 
+from config import BASE_URL
 from utils import print_error, print_info
 
 class UpdateChecker:
@@ -16,7 +17,7 @@ class UpdateChecker:
         :param app_dir: The directory where the application is installed (optional).
         """
         self.current_version = current_version
-        self.update_url = "https://jzf859i862.execute-api.eu-west-1.amazonaws.com/default/release-check"
+        self.update_url = f"{BASE_URL}/release-check"
         self.app_dir = app_dir if app_dir else os.path.dirname(os.path.abspath(__file__))
 
     def check_for_updates(self):
