@@ -156,19 +156,19 @@ class BotGUI:
         user_label.tag_bind('link', '<Button-1>', lambda e, u=user["stream_username"]: open_stream_url(u))
         user_label.config(state=tk.DISABLED)
         user_label.pack(side="left")
-        
+
         assistant_label = tk.Label(frame, text=f"Assistant: {user.get('assistant_type', 'Not Set')}")
         assistant_label.pack(side="left", padx=5)
-        
 
         time_label = tk.Label(frame, text="00:00", width=5, anchor="w")
         time_label.pack(side="left")
 
-        start_button = tk.Button(frame, text="Start", command=lambda u=user, t=time_label: self.start_bot(u, t))
-        start_button.pack(side="left", padx=5)
+        # Create the toggle button
+        toggle_button = tk.Button(frame, text="Start")
+        toggle_button.pack(side="left", padx=5)
 
-        stop_button = tk.Button(frame, text="Stop", command=lambda u=user: self.stop_bot(u))
-        stop_button.pack(side="left", padx=5)
+        # Set its command separately to avoid the UnboundLocalError
+        toggle_button.config(command=lambda u=user, t=time_label, b=toggle_button: self.toggle_bot(u, t, b))
 
         edit_button = tk.Button(frame, text="Edit", command=lambda u=user, f=frame: self.edit_user(u, f))
         edit_button.pack(side="left", padx=5)
@@ -178,6 +178,57 @@ class BotGUI:
 
         console_button = tk.Button(frame, text="Open Console", command=lambda u=user: self.open_console(u))
         console_button.pack(side="left", padx=5)
+
+
+    def toggle_bot(self, user, time_label, button):
+        """Toggle the bot's start and stop functions for the selected user."""
+        username = user["username"]
+        if username in self.processes:
+            # If bot is running, stop it
+            self.stop_bot(user)
+            button.config(text="Start")
+        else:
+            # If bot is not running, start it
+            self.start_bot(user, time_label)
+            button.config(text="Stop")
+
+    def start_bot(self, user, time_label):
+        """Start the bot for the selected user."""
+        try:
+            username = user["username"]
+            if username in self.processes:
+                messagebox.showwarning("Process Running", "A bot for this user is already running.")
+                return
+            
+            command = [sys.executable, "bot.py", user["username"], user["password"], user["stream_username"], user["game_name"], user["openai_api_key"], user["stream_language"]]
+            process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            self.processes[username] = process
+            self.start_times[username] = time.time()
+            
+            self.open_console(user)
+            
+            thread = threading.Thread(target=self.update_timer, args=(username, time_label), daemon=True)
+            thread.start()
+            self.threads[username] = thread
+            
+            output_thread = threading.Thread(target=self.read_output, args=(process, username), daemon=True)
+            output_thread.start()
+        except Exception as e:
+            logging.error(f"Failed to start bot for user {user['username']}: {e}")
+            messagebox.showerror("Error", f"An error occurred: {e}")
+
+    def stop_bot(self, user):
+        """Stop the bot for the selected user."""
+        username = user["username"]
+        if username in self.processes:
+            process = self.processes[username]
+            process.terminate()
+            del self.processes[username]
+            del self.threads[username]
+            del self.start_times[username]
+            messagebox.showinfo("Bot Stopped", f"Bot for user {username} has been stopped.")
+        else:
+            messagebox.showwarning("Process Not Found", "No running process found for this user.")
 
     def save_users(self):
         """Save current user data to the configuration file."""
