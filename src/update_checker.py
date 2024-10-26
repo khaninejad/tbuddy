@@ -1,5 +1,4 @@
 import requests
-import subprocess
 import platform
 import os
 import zipfile
@@ -74,7 +73,6 @@ class UpdateChecker:
             elif part1 > part2:
                 return 1
 
-        # If all parts are equal, the versions are equal
         if len(v1_parts) < len(v2_parts):
             return -1
         elif len(v1_parts) > len(v2_parts):
@@ -89,7 +87,7 @@ class UpdateChecker:
         current_platform = platform.system()
         print_info(f"Current Platform: {current_platform}")
 
-        if current_platform == "Darwin":  # macOS
+        if current_platform == "Darwin":
             download_url = last_release["macos"]
         elif current_platform == "Windows":
             download_url = last_release["windows"]
@@ -99,7 +97,6 @@ class UpdateChecker:
             print_error("Unsupported platform.")
             return
 
-        # Download the update
         update_filename = f"tbuddy-{current_platform}-v{last_release['version']}.zip"
         with requests.get(download_url, stream=True) as r:
             r.raise_for_status()
@@ -129,11 +126,9 @@ class UpdateChecker:
         """
         Install the extracted update by replacing the old application files.
         """
-        # Backup the current application directory (optional)
-        # shutil.make_archive(f"backup_{self.current_version}", 'zip', self.app_dir)
 
         extract_dir = os.path.join(self.app_dir, f"update_{last_release['version']}")
-        for root, dirs, files in os.walk(extract_dir):
+        for root, files in os.walk(extract_dir):
             for file in files:
                 file_path = os.path.join(root, file)
                 rel_path = os.path.relpath(file_path, extract_dir)
@@ -142,5 +137,4 @@ class UpdateChecker:
                 shutil.copy2(file_path, dest_path)
 
         print_info("Update installed successfully!")
-        # Clean up the extract directory
         shutil.rmtree(extract_dir)

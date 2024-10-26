@@ -10,7 +10,7 @@ RESET_TEXT = "\033[0m"
 GREEN_TEXT = "\033[92m"
 
 
-log_filename = f"bot_errors.log"
+log_filename = "bot_errors.log"
 max_log_size = 5 * 1024 * 1024
 backup_count = 5
 
@@ -45,7 +45,6 @@ def print_info(message):
 
 def countdown_timer(seconds, message_template="Waiting for {} seconds before login..."):
     """Print a countdown timer that updates every second."""
-    max_length = len(message_template.format(seconds))
 
     for remaining in range(seconds, 0, -1):
         message = message_template.format(remaining)

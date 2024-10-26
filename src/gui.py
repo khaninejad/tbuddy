@@ -427,54 +427,6 @@ class BotGUI:
         save_button = tk.Button(user_window, text="Save", command=save_user)
         save_button.grid(row=7, column=1, pady=5)
 
-    def start_bot(self, user, time_label):
-        """Start the bot for the selected user."""
-        try:
-            username = user["username"]
-            if username in self.processes:
-                messagebox.showwarning(
-                    "Process Running", "A bot for this user is already running."
-                )
-                return
-
-            command = [
-                sys.executable,
-                "bot.py",
-                user["username"],
-                user["password"],
-                user["stream_username"],
-                user["game_name"],
-                user["openai_api_key"],
-                user["stream_language"],
-            ]
-
-            process = subprocess.Popen(
-                command,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-            )
-
-            self.processes[username] = process
-            self.start_times[username] = time.time()
-
-            self.open_console(user)
-
-            thread = threading.Thread(
-                target=self.update_timer, args=(username, time_label), daemon=True
-            )
-            thread.start()
-            self.threads[username] = thread
-
-            output_thread = threading.Thread(
-                target=self.read_output, args=(process, username), daemon=True
-            )
-            output_thread.start()
-        except Exception as e:
-            logging.error(f"Failed to start bot for user {user['username']}: {e}")
-            messagebox.showerror("Error", f"An error occurred: {e}")
-
     def update_timer(self, username, time_label):
         """Update the elapsed time for the bot."""
         while username in self.processes:
@@ -566,24 +518,6 @@ class BotGUI:
 
         self.console_windows[username]["window"].lift()
 
-    def stop_bot(self, user):
-        """Stop the bot for the selected user."""
-        username = user["username"]
-
-        if username in self.processes:
-            process = self.processes[username]
-            process.terminate()
-            del self.processes[username]
-            del self.threads[username]
-            del self.start_times[username]
-            messagebox.showinfo(
-                "Bot Stopped", f"Bot for user {username} has been stopped."
-            )
-        else:
-            messagebox.showwarning(
-                "Process Not Found", "No running process found for this user."
-            )
-
     def delete_user(self, user, frame):
         """Delete the selected user."""
         username = user["username"]
@@ -603,7 +537,7 @@ class BotGUI:
 def start_gui():
     root = tk.Tk()
     root.minsize(400, 300)
-    app = BotGUI(root)
+    BotGUI(root)
     root.mainloop()
 
 
