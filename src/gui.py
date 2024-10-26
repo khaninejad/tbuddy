@@ -196,11 +196,14 @@ class BotGUI:
         time_label = tk.Label(frame, text="00:00", width=5, anchor="w")
         time_label.pack(side="left")
 
+        # Create a frame to hold the buttons
+        button_frame = Frame(frame)
+        button_frame.pack(side="right")
+
         # Create the toggle button
-        toggle_button = tk.Button(frame, text="Start")
+        toggle_button = tk.Button(button_frame, text="Start")
         toggle_button.pack(side="left", padx=5)
 
-        # Set its command separately to avoid the UnboundLocalError
         toggle_button.config(
             command=lambda u=user, t=time_label, b=toggle_button: self.toggle_bot(
                 u, t, b
@@ -208,19 +211,20 @@ class BotGUI:
         )
 
         edit_button = tk.Button(
-            frame, text="Edit", command=lambda u=user, f=frame: self.edit_user(u, f)
+            button_frame, text="Edit", command=lambda u=user, f=frame: self.edit_user(u, f)
         )
         edit_button.pack(side="left", padx=5)
 
         delete_button = tk.Button(
-            frame, text="Delete", command=lambda u=user, f=frame: self.delete_user(u, f)
+            button_frame, text="Delete", command=lambda u=user, f=frame: self.delete_user(u, f)
         )
         delete_button.pack(side="left", padx=5)
 
         console_button = tk.Button(
-            frame, text="Open Console", command=lambda u=user: self.open_console(u)
+            button_frame, text="Open Console", command=lambda u=user: self.open_console(u)
         )
         console_button.pack(side="left", padx=5)
+
 
     def toggle_bot(self, user, time_label, button):
         """Toggle the bot's start and stop functions for the selected user."""
