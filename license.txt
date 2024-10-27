@@ -1,11 +1,12 @@
-Custom Freemium and Subscription License
+Custom Freemium and Subscription License for Tbuddy
+
 LICENSE AGREEMENT
 
-This License Agreement ("Agreement") governs the terms under which users ("You" or "User") may access and use the software application ("App"), available in both a free, limited version ("Free Version") and a premium version available through a subscription ("Premium Version").
+This License Agreement ("Agreement") governs the terms under which users ("You" or "User") may access and use the software application "Tbuddy" (the "App"), available in both a free, limited version ("Free Version") and a premium version available through a subscription ("Premium Version"). This Agreement is between You and Payam Khaninejad, an individual developer residing in Berlin, Germany.
 1. Grant of License
 
-    Free Version: You are granted a non-exclusive, non-transferable license to use the Free Version of the App for personal, non-commercial purposes. The Free Version comes with limited features, as specified within the App.
-    Premium Version: Upon payment of the applicable subscription fees, You are granted a non-exclusive, non-transferable license to access the Premium Version of the App, which unlocks full features and functionality. The Premium Version is subject to the terms outlined in this Agreement.
+    Free Version: You are granted a non-exclusive, non-transferable license to use the Free Version of Tbuddy for personal, non-commercial purposes. The Free Version comes with limited features, as specified within the App.
+    Premium Version: Upon payment of the applicable subscription fees, You are granted a non-exclusive, non-transferable license to access the Premium Version of Tbuddy, which unlocks full features and functionality. The Premium Version is subject to the terms outlined in this Agreement.
 
 2. Scope of Use
 
@@ -20,37 +21,42 @@ This License Agreement ("Agreement") governs the terms under which users ("You" 
 
 4. License Restrictions
 
-You are not permitted to:
+You are strictly prohibited from:
 
-    Copy, modify, distribute, or create derivative works of the App.
-    Reverse-engineer, decompile, or disassemble the App.
-    Use the Free Version for commercial purposes.
-    Transfer the license to any third party.
+    Copying, modifying, distributing, or creating derivative works of Tbuddy.
+    Reverse-engineering, decompiling, disassembling, or otherwise attempting to access the source code, algorithms, or other underlying elements of Tbuddy, whether to circumvent licensing or for any other purpose.
+    Attempting to bypass, modify, or interfere with any feature or mechanism that enforces licensing, including but not limited to restrictions on Free Version features or access control mechanisms in the Premium Version.
+    Using the Free Version for commercial purposes or any other purpose outside personal, non-commercial use.
+    Transferring or sublicensing the license to any third party.
 
+Any attempt to circumvent, disable, or otherwise interfere with Tbuddy’s licensing, subscription-checking, or payment mechanisms will constitute a breach of this Agreement and result in immediate termination of the license.
 5. Updates and Changes
 
-The App may receive updates, modifications, or patches to improve performance or security. While the Free Version will receive limited updates, the Premium Version may receive priority updates and exclusive content. You agree that updates may be automatically installed without additional notice.
+Tbuddy may receive updates, modifications, or patches to improve performance or security. While the Free Version will receive limited updates, the Premium Version may receive priority updates and exclusive content. You agree that updates may be automatically installed without additional notice.
 6. Termination
 
     Free Version: Your license to use the Free Version will remain in effect until terminated by either party. We reserve the right to terminate or modify access to the Free Version at any time without notice.
     Premium Version: Your license to use the Premium Version will remain in effect as long as Your subscription is active. Failure to renew your subscription will result in the termination of access to the Premium Version.
 
-7. Intellectual Property
+7. Intellectual Property and Trademark Notice
 
-The App, including all intellectual property rights, remains the exclusive property of the App developer ("We" or "Us"). This Agreement does not grant You ownership of the App or its content.
+The App, including the name "Tbuddy," its design, branding, and all intellectual property rights, remains the exclusive property of Payam Khaninejad. This Agreement does not grant You ownership of Tbuddy or its content.
+
+“Tbuddy” is an unregistered trademark owned by Payam Khaninejad. Use of the name "Tbuddy" is restricted to this App and may not be used to represent any other product or service without explicit permission from Payam Khaninejad. Any unauthorized use of the name “Tbuddy” may result in legal action.
 8. Liability and Warranties
 
-    The App is provided "as is" without warranties of any kind, either express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, and non-infringement.
-    We shall not be held liable for any damages arising out of the use or inability to use the App, including but not limited to direct, indirect, incidental, consequential, or punitive damages.
+    Tbuddy is provided "as is" without warranties of any kind, either express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, and non-infringement.
+    Payam Khaninejad shall not be held liable for any damages arising out of the use or inability to use Tbuddy, including but not limited to direct, indirect, incidental, consequential, or punitive damages.
 
 9. Privacy Policy
 
-By using the App, You consent to the collection, storage, and processing of personal data as outlined in our Privacy Policy. You agree that Your data may be used for the purposes of improving the App and offering personalized services.
-10. Governing Law
+By using Tbuddy, You consent to the collection, storage, and processing of personal data as outlined in our Privacy Policy. You agree that Your data may be used for the purposes of improving Tbuddy and offering personalized services.
+10. Governing Law and Jurisdiction
 
-This Agreement shall be governed by and construed in accordance with the laws of [Your Jurisdiction]. Any disputes arising from this Agreement will be resolved in the courts of [Your Jurisdiction].
+This Agreement shall be governed by and construed in accordance with the laws of Germany. Any disputes arising from this Agreement will be resolved in the courts of Berlin, Germany.
 11. Amendments
 
-We reserve the right to modify or update this Agreement at any time. Users will be notified of any changes, and continued use of the App will constitute acceptance of the updated terms.
+We reserve the right to modify or update this Agreement at any time. Users will be notified of any changes, and continued use of Tbuddy will constitute acceptance of the updated terms.
+12. Acceptance of Terms
 
-Acceptance of Terms By downloading, installing, or using the App, whether the Free Version or Premium Version, You agree to be bound by the terms of this License Agreement.
+By downloading, installing, or using Tbuddy, whether the Free Version or Premium Version, You agree to be bound by the terms of this License Agreement.

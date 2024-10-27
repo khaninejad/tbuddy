@@ -1,0 +1,73 @@
+END-USER LICENSE AGREEMENT (EULA) FOR TBUDDY
+
+Last Updated: 2024-10-25
+
+This End-User License Agreement ("Agreement" or "EULA") is a legal agreement between you ("User" or "You") and Payam Khaninejad, individual developer and owner of the application "Tbuddy" ("App"). By downloading, installing, or using Tbuddy, You agree to the terms outlined below. If You do not agree to these terms, do not download, install, or use the App.
+1. License Grant and Scope
+
+    Free Version: You are granted a non-exclusive, non-transferable, revocable license to use the Free Version of Tbuddy for personal, non-commercial purposes. This version includes limited functionality and allows a maximum session of 30 minutes per use. Restarting the App renews the session duration, but You may only use one user profile with the Free Version.
+    Premium Version: Upon purchase of a subscription, You are granted access to the Premium Version of Tbuddy, which includes unrestricted session duration and the ability to use multiple user profiles. The subscription is valid for the chosen duration (monthly or annually) and will auto-renew unless canceled.
+    Supported Platforms: This license covers installation on Windows, macOS, and Linux operating systems. Compatibility and access to certain features may vary by platform.
+
+2. User Data and Storage
+
+    Data Collection and Usage: Tbuddy requires specific user information, including Twitch usernames and passwords, for account access and functionality. Additionally, API keys for OpenAI or other analytical models are stored locally. This data enables Tbuddy’s functions, including real-time analysis, AI-driven commentary, and stream reactions.
+    Local Storage: User credentials, screenshots, API keys, and other configuration data are stored locally on the User’s device in plain text. It is the User’s responsibility to ensure their device’s security.
+    Data Security and Privacy: Tbuddy does not transmit usernames, passwords, or API keys to external servers except for functionality-related requests made directly to Twitch, OpenAI, or other third-party services. You accept the responsibility for ensuring that stored data remains secure on your device.
+
+3. Subscription and Payment Terms
+
+    Fees and Billing: Subscriptions to the Premium Version require a recurring payment, billed monthly or annually. You authorize Tbuddy to charge the payment method provided for recurring payments.
+    Renewals and Cancellations: Your subscription will automatically renew unless canceled prior to the end of the current billing period. Cancellations can be managed through the Tbuddy account settings.
+    Refunds: Due to the digital nature of the product, refunds are issued only in compliance with applicable consumer protection laws.
+
+4. License Restrictions
+
+    Prohibited Actions:
+        Reverse-engineering, decompiling, or modifying the App, including any security or subscription-checking mechanisms.
+        Bypassing or modifying session limitations, user limits, or other App-imposed restrictions.
+        Unauthorized redistribution, sharing, or sublicensing of Tbuddy.
+    Limitations on Usage:
+        Free Version users are limited to one user profile and a 30-minute session duration per use. Premium Version users are not subject to these restrictions.
+    Data Protection and Security Obligations: You are responsible for keeping Your device and locally stored data secure. Any unauthorized access due to device security failures is not the responsibility of Tbuddy.
+
+5. Disclaimer of Warranties
+
+Tbuddy is provided "as-is" without any warranties, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, and non-infringement. Tbuddy does not guarantee uninterrupted service or error-free functionality.
+6. Liability and Limitations
+
+    Limitations on Liability: Payam Khaninejad is not liable for any damages, including but not limited to data loss, unauthorized access to stored data, or any claims related to third-party services accessed through Tbuddy (e.g., Twitch, OpenAI).
+    Limitation of Liability: In no event will Payam Khaninejad’s total liability exceed the subscription fees paid by You for the Premium Version in the twelve months prior to the incident.
+
+7. Updates and Modifications
+
+    Automatic Updates: Tbuddy may automatically check for and install updates. By using the App, You consent to such automatic updating. If You do not agree, discontinue using Tbuddy.
+    Modification of Terms: We reserve the right to modify this Agreement at any time. Users will be notified of any changes, and continued use of Tbuddy after modifications constitutes acceptance of the updated terms.
+
+8. Intellectual Property and Ownership
+
+    Ownership: The App, including the name "Tbuddy," remains the exclusive property of Payam Khaninejad. This Agreement does not grant You ownership rights to Tbuddy or its content.
+    Trademark Notice: “Tbuddy” is a trademark of Payam Khaninejad. Unauthorized use of the name or related branding is prohibited.
+
+9. Third-Party Services and Dependencies
+
+    API Access and Keys: Users must provide API keys for external services (e.g., OpenAI) required for the App’s analytical functions. Tbuddy is not responsible for data processing or storage policies of third-party services.
+    Service Interruption or Limitation: The App’s functionality depends on access to third-party APIs and may be impacted by external service limitations. Tbuddy is not liable for functionality limitations resulting from issues with third-party services.
+
+10. Privacy and Data Protection Compliance
+
+    GDPR Compliance: As a resident of the European Union, Payam Khaninejad abides by GDPR requirements concerning data security and privacy. Tbuddy does not collect, transmit, or process personal data beyond what is required for the App’s stated functions. You have the right to request deletion of locally stored data, although such actions may impact App functionality.
+    User Responsibility: By using Tbuddy, You consent to the collection and local storage of data required for functionality, including usernames, passwords, and API keys. Tbuddy does not assume liability for local data security on Your device.
+
+11. Termination of Agreement
+
+    Termination by User: You may terminate this Agreement at any time by uninstalling Tbuddy and discontinuing use.
+    Termination by Tbuddy: Tbuddy reserves the right to terminate or suspend access to the Free or Premium Version in cases of license violations, abuse, or unauthorized modification.
+    Effect of Termination: Upon termination, You agree to cease all use of Tbuddy and delete any locally stored data related to the App.
+
+12. Governing Law and Jurisdiction
+
+This Agreement shall be governed by and construed in accordance with the laws of Germany, and any disputes arising hereunder will be subject to the jurisdiction of the courts in Berlin, Germany.
+13. Acceptance of Terms
+
+By downloading, installing, or using Tbuddy, You acknowledge that You have read, understood, and agree to be bound by this End-User License Agreement. If You do not agree, You must not use Tbuddy.
