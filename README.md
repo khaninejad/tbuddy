@@ -1,11 +1,11 @@
 # Tbuddy
 
-**Tbuddy** is a Twitch bot application designed to monitor streams, capture screenshots, and analyze data to generate live insights and comments. This application uses OpenAI or other AI models to interpret data, providing real-time responses and feedback. Tbuddy is available in both Free and Premium versions, with different levels of access and functionality.
+**Tbuddy** is a Twitch bot application designed to monitor streams, watch stream, and analyze data to generate live insights and comments. This application uses OpenAI or other AI models to interpret data, providing real-time responses and feedback. Tbuddy is available in both Free and Premium versions, with different levels of access and functionality.
 
 ## Features
 
-- **Stream Monitoring and Analysis**: Takes screenshots and analyzes Twitch streams to generate comments and insights.
-- **Real-time Response**: Uses OpenAI and other models to analyze data and create responses based on user-defined or custom templates.
+- **Stream Monitoring and Analysis**: watch stream and analyzes Twitch streams to generate comments and insights.
+- **Real-time Response**: Uses OpenAI and other models to analyze data and create responses based on user-defined or custom assistants.
 - **Free and Premium Modes**: Free users are limited to 30-minute sessions, while Premium users get unlimited access.
 - **Cross-Platform Support**: Compatible with Windows, macOS, and Linux.
 
@@ -81,7 +81,7 @@ To access the analysis features, you need an API key from OpenAI (or similar).
 
 1. **Obtain an API Key**:
    - Create an account with [OpenAI](https://beta.openai.com/signup/).
-   - Follow the instructions to generate your API key.
+   - Follow the instructions to generate your [API key](https://platform.openai.com/api-keys).
 
 2. **Save Your API Key**:
    - Upon starting the application for the first time, Tbuddy will prompt you to enter your OpenAI API key.
@@ -95,7 +95,7 @@ Each user requires a Twitch username and password to authenticate. These credent
    - When prompted, provide your Twitch username and password. 
    - Ensure that your credentials are correct to avoid login issues.
 
-> **Note**: Tbuddy stores this information as plain text on your device. Make sure to secure your local storage to protect sensitive data.
+> **Note**: Tbuddy stores this information on your device. Make sure to secure your local storage to protect sensitive data.
 
 
 ## Usage
@@ -122,23 +122,11 @@ Each user requires a Twitch username and password to authenticate. These credent
   - Enjoy unlimited session time.
   - Can set up multiple user profiles.
 
-### API Key and Login
-
-1. **Enter Your API Key**:
-   - On the first launch, Tbuddy will prompt you to enter your OpenAI API key.
-   - This key will be securely stored for future use.
-
-2. **Provide Twitch Credentials**:
-   - Enter your Twitch username and password when prompted.
-   - Ensure that your credentials are correct to avoid login issues.
-
 ### Application Features
 
-- **Stream Monitoring**: Tbuddy captures screenshots of Twitch streams and analyzes them in real time.
+- **Stream Monitoring**: Tbuddy watches stream of Twitch and analyzes them in real time.
 - **Comment Generation**: Based on the analysis, Tbuddy can generate live comments and insights using AI models.
 - **User-Friendly Interface**: The application provides a straightforward GUI for easy interaction and configuration.
-
-> **Note**: Be mindful of your local data security, as your Twitch credentials and API keys are stored locally in plain text.
 
 
 ## License and EULA
