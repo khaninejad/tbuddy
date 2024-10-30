@@ -18,6 +18,7 @@ psutil = "^6.1.0"
 pyinstaller = "^6.11.0"
 getmac = "^0.9.5"
 seleniumbase = "^4.31.6"
+sv-ttk = "^2.6.0"
 
 
 [build-system]

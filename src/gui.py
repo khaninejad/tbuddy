@@ -8,6 +8,7 @@ import threading
 import json
 import time
 import webbrowser
+import sv_ttk
 from __version__ import __version__
 from config import CONFIG_FILE
 from license_manager import LicenseManager
@@ -17,7 +18,7 @@ from utils import print_info
 
 
 LICENSED = False
-USAGE_TIME_LIMIT = 30 * 1 
+USAGE_TIME_LIMIT = 30 * 1
 USAGE_TIME_LEFT = USAGE_TIME_LIMIT
 print_info(f"Application Version: {__version__}")
 
@@ -70,44 +71,12 @@ class BotGUI:
             "Portuguese",
         ]
 
-    def prompt_for_update(self, last_release, update_checker):
-        update_window = Toplevel(self.master)
-        update_window.title("Update Available")
-
-        tk.Label(
-            update_window, text=f"Update available: v{last_release['version']}"
-        ).pack(pady=20)
-
-        def update_now():
-            update_filename = update_checker.download_update(last_release)
-            update_checker.extract_update(last_release, update_filename)
-            update_checker.install_update(last_release)
-            update_window.destroy()
-            messagebox.showinfo(
-                "Update Installed", "The update has been successfully installed."
-            )
-
-        def remind_me_later():
-            update_window.destroy()
-
-        update_button = tk.Button(update_window, text="Update Now", command=update_now)
-        update_button.pack(pady=10)
-
-        remind_me_later_button = tk.Button(
-            update_window, text="Remind Me Later", command=remind_me_later
-        )
-        remind_me_later_button.pack(pady=10)
-
     def setup_registration_ui(self):
         """UI when no valid license exists, prompting the user to register."""
         register_button = tk.Button(
             self.master, text="Register License", command=self.register_new_license
         )
         register_button.pack(pady=20)
-
-    def upgrade_to_premium(self):
-        """Directs the user to a URL to upgrade to premium."""
-        webbrowser.open("https://your-upgrade-link.com")
 
     def setup_free_ui(self):
         """UI for Free users, with an upgrade button."""
@@ -138,12 +107,51 @@ class BotGUI:
         )
         self.add_user_button.pack(pady=5)
 
+        self.assistants_button = tk.Button(
+            self.master, text="Assistants", command=self.assistants
+        )
+        self.assistants_button.pack(pady=5)
+
         self.load_users()
+
+    def prompt_for_update(self, last_release, update_checker):
+        update_window = Toplevel(self.master)
+        update_window.title("Update Available")
+
+        tk.Label(
+            update_window, text=f"Update available: v{last_release['version']}"
+        ).pack(pady=20)
+
+        def update_now():
+            update_filename = update_checker.download_update(last_release)
+            update_checker.extract_update(last_release, update_filename)
+            update_checker.install_update(last_release)
+            update_window.destroy()
+            messagebox.showinfo(
+                "Update Installed", "The update has been successfully installed."
+            )
+
+        def remind_me_later():
+            update_window.destroy()
+
+        update_button = tk.Button(update_window, text="Update Now", command=update_now)
+        update_button.pack(pady=10)
+
+        remind_me_later_button = tk.Button(
+            update_window, text="Remind Me Later", command=remind_me_later
+        )
+        remind_me_later_button.pack(pady=10)
+
+    def upgrade_to_premium(self):
+        """Directs the user to a URL to upgrade to premium."""
+        webbrowser.open("https://your-upgrade-link.com")
 
     def register_new_license(self):
         """Register a new license by using the LicenseManager."""
         if self.license_manager.register_license():
             self.license_manager.prompt_for_serial_number()
+
+    # **User Management Functions**
 
     def load_users(self):
         """Load user data from the configuration file."""
@@ -199,11 +207,9 @@ class BotGUI:
         time_label = tk.Label(frame, text="00:00", width=5, anchor="w")
         time_label.pack(side="left")
 
-        # Create a frame to hold the buttons
         button_frame = Frame(frame)
         button_frame.pack(side="right")
 
-        # Create the toggle button
         toggle_button = tk.Button(button_frame, text="Start")
         toggle_button.pack(side="left", padx=5)
 
@@ -214,30 +220,180 @@ class BotGUI:
         )
 
         edit_button = tk.Button(
-            button_frame, text="Edit", command=lambda u=user, f=frame: self.edit_user(u, f)
+            button_frame,
+            text="Edit",
+            command=lambda u=user, f=frame: self.edit_user(u, f),
         )
         edit_button.pack(side="left", padx=5)
 
         delete_button = tk.Button(
-            button_frame, text="Delete", command=lambda u=user, f=frame: self.delete_user(u, f)
+            button_frame,
+            text="Delete",
+            command=lambda u=user, f=frame: self.delete_user(u, f),
         )
         delete_button.pack(side="left", padx=5)
 
         console_button = tk.Button(
-            button_frame, text="Open Console", command=lambda u=user: self.open_console(u)
+            button_frame,
+            text="Open Console",
+            command=lambda u=user: self.open_console(u),
         )
         console_button.pack(side="left", padx=5)
 
+    def add_user(self):
+        """Add a new user with a popup dialog."""
+
+        plan_type = self.license_manager.PLAN_TYPE
+        print_info(f"Current plan type: {plan_type}")
+
+        print_info(f"Number of existing users: {len(self.users)}")
+
+        if plan_type == "FREE" and len(self.users) >= 1:
+            messagebox.showerror(
+                "Upgrade to Premium",
+                "You are currently on the Free plan, which allows only one user. Please upgrade to Premium to add more users.",
+            )
+            print_info("User limit reached. Prompting to upgrade to Premium.")
+            return
+
+        print_info("User limit not reached. Showing the user form.")
+
+        self.show_user_form()
+
+    def edit_user(self, user, frame):
+        """Edit an existing user."""
+        self.show_user_form(user=user, frame=frame)
+
+    def delete_user(self, user, frame):
+        """Delete the selected user."""
+        username = user["username"]
+
+        if username in self.processes:
+            self.stop_bot(user)
+
+        self.users.remove(user)
+        self.save_users()
+
+        frame.destroy()
+        messagebox.showinfo(
+            "User Deleted", f"User {username} has been successfully deleted."
+        )
+
+    def save_users(self):
+        """Save current user data to the configuration file."""
+        config = {"users": self.users}
+        with open(CONFIG_FILE, "w") as config_file:
+            json.dump(config, config_file)
+
+    # **Assistant Management Functions**
+    def assistants(self):
+        """Load and manage assistants."""
+        self.assistants_window = Toplevel(self.master)
+        self.assistants_window.title("Manage Assistants")
+
+        self.assistant_types = load_assistant_types()
+
+        self.assistant_listbox = tk.Listbox(self.assistants_window)
+        self.assistant_listbox.pack(fill="both", expand=True, padx=10, pady=10)
+
+        for assistant in self.assistant_types:
+            self.assistant_listbox.insert(tk.END, assistant)
+
+        edit_button = tk.Button(
+            self.assistants_window, text="Edit", command=self.edit_assistant
+        )
+        edit_button.pack(pady=5)
+
+        delete_button = tk.Button(
+            self.assistants_window, text="Delete", command=self.delete_assistant
+        )
+        delete_button.pack(pady=5)
+
+    def edit_assistant(self):
+        """Edit the selected assistant."""
+        selected_index = self.assistant_listbox.curselection()
+        if not selected_index:
+            messagebox.showwarning("Selection Error", "No assistant selected.")
+            return
+
+        # Retrieve selected assistant type as a dictionary instead of a string
+        selected_assistant = self.assistant_listbox.get(selected_index)
+
+        # Find the dictionary corresponding to this assistant
+        user = next(
+            (u for u in self.assistant_types if u["name"] == selected_assistant), None
+        )
+        if not user:
+            messagebox.showerror("Error", "Assistant data not found.")
+            return
+
+        self.show_assistant_form(user, user.get("assistant_type", ""))
+
+    def delete_assistant(self):
+        """Delete the selected assistant."""
+        selected_index = self.assistant_listbox.curselection()
+        if not selected_index:
+            messagebox.showwarning("Selection Error", "No assistant selected.")
+            return
+
+        selected_assistant = self.assistant_listbox.get(selected_index)
+        assistants_dir = os.path.join(os.path.dirname(__file__), "assistants")
+        assistant_file = os.path.join(assistants_dir, f"{selected_assistant}.txt")
+
+        try:
+            os.remove(assistant_file)
+            self.assistant_listbox.delete(selected_index)
+            messagebox.showinfo(
+                "Success", f"{selected_assistant} deleted successfully."
+            )
+        except Exception as e:
+            messagebox.showerror("Error", f"Could not delete {selected_assistant}: {e}")
+
+    def save_assistant(self, user, assistant_type, form_window):
+        """Save the assistant type and close the form."""
+        user["assistant_type"] = assistant_type
+        form_window.destroy()
+
+    # **Form Display Functions**
+
+    def show_assistant_form(self, user, assistant_type=None):
+        """Show a form for editing the assistant type."""
+        form_window = Toplevel(self.master)
+        form_window.title("Edit Assistant Type")
+
+        prompt_label = tk.Label(form_window, text="Enter Assistant Type:")
+        prompt_label.pack(padx=10, pady=10)
+
+        assistant_text = tk.Text(form_window, width=50, height=10, wrap=tk.WORD)
+        assistant_text.pack(padx=10, pady=10)
+
+        assistant_text.insert(tk.END, assistant_type, "")
+
+        save_button = tk.Button(
+            form_window,
+            text="Save",
+            command=lambda: self.save_assistant(
+                user, assistant_text.get("1.0", tk.END).strip(), form_window
+            ),
+        )
+        save_button.pack(pady=5)
+
+        cancel_button = tk.Button(
+            form_window, text="Cancel", command=form_window.destroy
+        )
+        cancel_button.pack(pady=5)
+
+    # **Bot Control and Console Functions**
 
     def toggle_bot(self, user, time_label, button):
         """Toggle the bot's start and stop functions for the selected user."""
         username = user["username"]
         if username in self.processes:
-            # If bot is running, stop it
+
             self.stop_bot(user)
             button.config(text="Start")
         else:
-            # If bot is not running, start it
+
             self.start_bot(user, time_label)
             button.config(text="Stop")
 
@@ -250,7 +406,7 @@ class BotGUI:
                     "Process Running", "A bot for this user is already running."
                 )
                 return
-            
+
             command = [
                 sys.executable,
                 "bot.py",
@@ -295,13 +451,13 @@ class BotGUI:
             time_label.config(text=f"{minutes:02}:{seconds:02}")
 
             if self.license_manager.PLAN_TYPE == "FREE" and elapsed_time >= 30 * 1:
-                # If free plan limit is reached, stop the bot
-                self.stop_bot({"username": username})  # Pass a dummy user dict
+
+                self.stop_bot({"username": username})
                 messagebox.showinfo(
                     "Limit Reached",
-                    "You have reached the 30-minute limit for free users. Please upgrade to continue using the bot."
+                    "You have reached the 30-minute limit for free users. Please upgrade to continue using the bot.",
                 )
-                break  # Exit the timer loop
+                break
 
             time.sleep(1)
 
@@ -322,35 +478,115 @@ class BotGUI:
                 "Process Not Found", "No running process found for this user."
             )
 
-    def save_users(self):
-        """Save current user data to the configuration file."""
-        config = {"users": self.users}
-        with open(CONFIG_FILE, "w") as config_file:
-            json.dump(config, config_file)
+    def start_usage_timer(self):
+        """Start a timer for free usage limit of 30 minutes."""
+        self.update_usage_time()
+        self.master.after(1000, self.check_usage_time)
 
-    def add_user(self):
-        """Add a new user with a popup dialog."""
+    def update_usage_time(self):
+        """Reduce the usage time left by 1 second every second."""
+        global USAGE_TIME_LEFT
+        if USAGE_TIME_LEFT > 0:
+            USAGE_TIME_LEFT -= 1
 
-        plan_type = self.license_manager.PLAN_TYPE
-        print_info(f"Current plan type: {plan_type}")
-
-        print_info(f"Number of existing users: {len(self.users)}")
-
-        if plan_type == "FREE" and len(self.users) >= 1:
-            messagebox.showerror(
-                "Upgrade to Premium",
-                "You are currently on the Free plan, which allows only one user. Please upgrade to Premium to add more users.",
+    def check_usage_time(self):
+        """Check if the usage time limit is reached."""
+        if USAGE_TIME_LEFT <= 0:
+            messagebox.showwarning(
+                "Usage Time Expired",
+                "Your usage time has expired. Please register for a valid license.",
             )
-            print_info("User limit reached. Prompting to upgrade to Premium.")
+            self.disable_features()
+        else:
+            self.master.after(1000, self.check_usage_time)
+
+    def disable_features(self):
+        """Disable certain features if the time limit has expired."""
+
+        self.add_user_button.config(state=tk.DISABLED)
+
+    def read_output(self, process, username):
+        """Read the output from the bot process and store it in memory."""
+        if username not in self.console_windows:
             return
 
-        print_info("User limit not reached. Showing the user form.")
+        while True:
+            output = process.stdout.readline()
+            if output == "" and process.poll() is not None:
+                break
+            if output:
 
-        self.show_user_form()
+                self.console_windows[username]["output_buffer"].append(output)
 
-    def edit_user(self, user, frame):
-        """Edit an existing user."""
-        self.show_user_form(user=user, frame=frame)
+                if (
+                    self.console_windows[username]["window"] is not None
+                    and self.console_windows[username]["window"].winfo_exists()
+                ):
+                    console_output = self.console_windows[username]["output"]
+                    console_output.config(state="normal")
+                    console_output.insert(tk.END, output)
+                    console_output.see(tk.END)
+                    console_output.config(state="disabled")
+
+    def open_console(self, user):
+        """Open a console window for the selected user."""
+        username = user["username"]
+
+        if username in self.console_windows:
+            if (
+                self.console_windows[username]["window"] is None
+                or not self.console_windows[username]["window"].winfo_exists()
+            ):
+
+                del self.console_windows[username]
+
+        if username not in self.console_windows:
+            console_window = Toplevel(self.master)
+            console_window.title(f"Console - {username}")
+
+            console_output = scrolledtext.ScrolledText(
+                console_window, width=80, height=20, state="disabled"
+            )
+            console_output.pack()
+
+            input_field = tk.Entry(console_window, width=80)
+            input_field.pack(pady=5)
+
+            def send_command():
+                command = input_field.get()
+                if command and username in self.processes:
+                    process = self.processes[username]
+                    process.stdin.write(command + "\n")
+                    process.stdin.flush()
+                    input_field.delete(0, tk.END)
+
+            send_button = tk.Button(console_window, text="Send", command=send_command)
+            send_button.pack(pady=5)
+
+            if username not in self.console_windows:
+                self.console_windows[username] = {
+                    "window": console_window,
+                    "output": console_output,
+                    "output_buffer": [],
+                }
+            else:
+                self.console_windows[username]["window"] = console_window
+                self.console_windows[username]["output"] = console_output
+
+            def on_close():
+                self.console_windows[username]["window"] = None
+                console_window.destroy()
+
+            console_window.protocol("WM_DELETE_WINDOW", on_close)
+
+        console_output = self.console_windows[username]["output"]
+        console_output.config(state="normal")
+        for line in self.console_windows[username]["output_buffer"]:
+            console_output.insert(tk.END, line)
+        console_output.see(tk.END)
+        console_output.config(state="disabled")
+
+        self.console_windows[username]["window"].lift()
 
     def show_user_form(self, user=None, frame=None):
         """Show form to add or edit a user."""
@@ -452,137 +688,11 @@ class BotGUI:
         save_button = tk.Button(user_window, text="Save", command=save_user)
         save_button.grid(row=7, column=1, pady=5)
 
-    def start_usage_timer(self):
-        """Start a timer for free usage limit of 30 minutes."""
-        self.update_usage_time()
-        self.master.after(1000, self.check_usage_time)
-    
-    def update_usage_time(self):
-        """Reduce the usage time left by 1 second every second."""
-        global USAGE_TIME_LEFT
-        if USAGE_TIME_LEFT > 0:
-            USAGE_TIME_LEFT -= 1
-
-    def check_usage_time(self):
-        """Check if the usage time limit is reached."""
-        if USAGE_TIME_LEFT <= 0:
-            messagebox.showwarning(
-                "Usage Time Expired", 
-                "Your usage time has expired. Please register for a valid license."
-            )
-            self.disable_features()
-        else:
-            self.master.after(1000, self.check_usage_time) 
-            
-    def disable_features(self):
-        """Disable certain features if the time limit has expired."""
-        # Example: disable the Add User button
-        self.add_user_button.config(state=tk.DISABLED)
-        # Disable other features as needed        
-            
-
-    def read_output(self, process, username):
-        """Read the output from the bot process and store it in memory."""
-        if username not in self.console_windows:
-            return
-
-        while True:
-            output = process.stdout.readline()
-            if output == "" and process.poll() is not None:
-                break
-            if output:
-
-                self.console_windows[username]["output_buffer"].append(output)
-
-                if (
-                    self.console_windows[username]["window"] is not None
-                    and self.console_windows[username]["window"].winfo_exists()
-                ):
-                    console_output = self.console_windows[username]["output"]
-                    console_output.config(state="normal")
-                    console_output.insert(tk.END, output)
-                    console_output.see(tk.END)
-                    console_output.config(state="disabled")
-
-    def open_console(self, user):
-        """Open a console window for the selected user."""
-        username = user["username"]
-
-        if username in self.console_windows:
-            if (
-                self.console_windows[username]["window"] is None
-                or not self.console_windows[username]["window"].winfo_exists()
-            ):
-
-                del self.console_windows[username]
-
-        if username not in self.console_windows:
-            console_window = Toplevel(self.master)
-            console_window.title(f"Console - {username}")
-
-            console_output = scrolledtext.ScrolledText(
-                console_window, width=80, height=20, state="disabled"
-            )
-            console_output.pack()
-
-            input_field = tk.Entry(console_window, width=80)
-            input_field.pack(pady=5)
-
-            def send_command():
-                command = input_field.get()
-                if command and username in self.processes:
-                    process = self.processes[username]
-                    process.stdin.write(command + "\n")
-                    process.stdin.flush()
-                    input_field.delete(0, tk.END)
-
-            send_button = tk.Button(console_window, text="Send", command=send_command)
-            send_button.pack(pady=5)
-
-            if username not in self.console_windows:
-                self.console_windows[username] = {
-                    "window": console_window,
-                    "output": console_output,
-                    "output_buffer": [],
-                }
-            else:
-                self.console_windows[username]["window"] = console_window
-                self.console_windows[username]["output"] = console_output
-
-            def on_close():
-                self.console_windows[username]["window"] = None
-                console_window.destroy()
-
-            console_window.protocol("WM_DELETE_WINDOW", on_close)
-
-        console_output = self.console_windows[username]["output"]
-        console_output.config(state="normal")
-        for line in self.console_windows[username]["output_buffer"]:
-            console_output.insert(tk.END, line)
-        console_output.see(tk.END)
-        console_output.config(state="disabled")
-
-        self.console_windows[username]["window"].lift()
-
-    def delete_user(self, user, frame):
-        """Delete the selected user."""
-        username = user["username"]
-
-        if username in self.processes:
-            self.stop_bot(user)
-
-        self.users.remove(user)
-        self.save_users()
-
-        frame.destroy()
-        messagebox.showinfo(
-            "User Deleted", f"User {username} has been successfully deleted."
-        )
-
 
 def start_gui():
     root = tk.Tk()
     root.minsize(400, 300)
+    sv_ttk.set_theme("light")
     BotGUI(root)
     root.mainloop()
 
