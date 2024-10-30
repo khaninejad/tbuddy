@@ -108,7 +108,7 @@ class BotGUI:
         self.add_user_button.pack(pady=5)
 
         self.assistants_button = tk.Button(
-        self.master, text="Assistants", command=lambda: assistants(self.master)
+            self.master, text="Assistants", command=lambda: assistants(self.master)
         )
         self.assistants_button.pack(pady=5)
 
@@ -150,8 +150,6 @@ class BotGUI:
         """Register a new license by using the LicenseManager."""
         if self.license_manager.register_license():
             self.license_manager.prompt_for_serial_number()
-
-    # **User Management Functions**
 
     def load_users(self):
         """Load user data from the configuration file."""
@@ -284,10 +282,6 @@ class BotGUI:
         config = {"users": self.users}
         with open(CONFIG_FILE, "w") as config_file:
             json.dump(config, config_file)
-
-    # **Assistant Management Functions**
-    
-    # **Bot Control and Console Functions**
 
     def toggle_bot(self, user, time_label, button):
         """Toggle the bot's start and stop functions for the selected user."""
