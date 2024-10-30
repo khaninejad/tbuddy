@@ -7,6 +7,7 @@ from tkinter import messagebox, Toplevel, Frame, scrolledtext, ttk
 import threading
 import json
 import time
+from tkinter import filedialog
 import webbrowser
 from load_assistant_type import assistants
 import sv_ttk
@@ -70,6 +71,11 @@ class BotGUI:
             "Korean",
             "Portuguese",
         ]
+        
+        feedback_button = tk.Button(
+            master, text="Report a Bug or Feedback", command=self.report_feedback
+        )
+        feedback_button.pack(pady=5)
 
     def setup_registration_ui(self):
         """UI when no valid license exists, prompting the user to register."""
@@ -150,6 +156,38 @@ class BotGUI:
         """Register a new license by using the LicenseManager."""
         if self.license_manager.register_license():
             self.license_manager.prompt_for_serial_number()
+            
+    def report_feedback(self):
+        """Collects user feedback, with an option to attach logs."""
+        feedback_window = Toplevel(self.master)
+        feedback_window.title("Report Feedback")
+        if self.prompt_for_logs():
+            webbrowser.open("https://tbuddy.chat/contact-us/", new=1)
+            feedback_window.destroy()
+
+        
+    def prompt_for_logs(self):
+        """Prompt user to attach logs, and open save dialog if they agree."""
+        attach_logs = messagebox.askyesno(
+            "Attach Logs", "Would you like to attach logs with your feedback?"
+        )
+        if attach_logs:
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".log",
+                filetypes=[("Log files", "*.log"), ("All files", "*.*")],
+                title="Save bot_errors.log",
+            )
+            if file_path:
+                try:
+                    with open("bot_errors.log", "r") as log_file:
+                        with open(file_path, "w") as save_file:
+                            save_file.write(log_file.read())
+                    messagebox.showinfo("Logs Saved", "Logs have been saved successfully.")
+                except Exception as e:
+                    logging.error(f"Failed to save log file: {e}")
+                    messagebox.showerror("Error", "Failed to save log file.")
+        return True
+
 
     def load_users(self):
         """Load user data from the configuration file."""
