@@ -8,11 +8,11 @@ import threading
 import json
 import time
 import webbrowser
+from load_assistant_type import assistants
 import sv_ttk
 from __version__ import __version__
 from config import CONFIG_FILE
 from license_manager import LicenseManager
-from load_assistant_type import load_assistant_types
 from update_checker import UpdateChecker
 from utils import print_info
 
@@ -108,7 +108,7 @@ class BotGUI:
         self.add_user_button.pack(pady=5)
 
         self.assistants_button = tk.Button(
-            self.master, text="Assistants", command=self.assistants
+        self.master, text="Assistants", command=lambda: assistants(self.master)
         )
         self.assistants_button.pack(pady=5)
 
@@ -286,103 +286,7 @@ class BotGUI:
             json.dump(config, config_file)
 
     # **Assistant Management Functions**
-    def assistants(self):
-        """Load and manage assistants."""
-        self.assistants_window = Toplevel(self.master)
-        self.assistants_window.title("Manage Assistants")
-
-        self.assistant_types = load_assistant_types()
-
-        self.assistant_listbox = tk.Listbox(self.assistants_window)
-        self.assistant_listbox.pack(fill="both", expand=True, padx=10, pady=10)
-
-        for assistant in self.assistant_types:
-            self.assistant_listbox.insert(tk.END, assistant)
-
-        edit_button = tk.Button(
-            self.assistants_window, text="Edit", command=self.edit_assistant
-        )
-        edit_button.pack(pady=5)
-
-        delete_button = tk.Button(
-            self.assistants_window, text="Delete", command=self.delete_assistant
-        )
-        delete_button.pack(pady=5)
-
-    def edit_assistant(self):
-        """Edit the selected assistant."""
-        selected_index = self.assistant_listbox.curselection()
-        if not selected_index:
-            messagebox.showwarning("Selection Error", "No assistant selected.")
-            return
-
-        # Retrieve selected assistant type as a dictionary instead of a string
-        selected_assistant = self.assistant_listbox.get(selected_index)
-
-        # Find the dictionary corresponding to this assistant
-        user = next(
-            (u for u in self.assistant_types if u["name"] == selected_assistant), None
-        )
-        if not user:
-            messagebox.showerror("Error", "Assistant data not found.")
-            return
-
-        self.show_assistant_form(user, user.get("assistant_type", ""))
-
-    def delete_assistant(self):
-        """Delete the selected assistant."""
-        selected_index = self.assistant_listbox.curselection()
-        if not selected_index:
-            messagebox.showwarning("Selection Error", "No assistant selected.")
-            return
-
-        selected_assistant = self.assistant_listbox.get(selected_index)
-        assistants_dir = os.path.join(os.path.dirname(__file__), "assistants")
-        assistant_file = os.path.join(assistants_dir, f"{selected_assistant}.txt")
-
-        try:
-            os.remove(assistant_file)
-            self.assistant_listbox.delete(selected_index)
-            messagebox.showinfo(
-                "Success", f"{selected_assistant} deleted successfully."
-            )
-        except Exception as e:
-            messagebox.showerror("Error", f"Could not delete {selected_assistant}: {e}")
-
-    def save_assistant(self, user, assistant_type, form_window):
-        """Save the assistant type and close the form."""
-        user["assistant_type"] = assistant_type
-        form_window.destroy()
-
-    # **Form Display Functions**
-
-    def show_assistant_form(self, user, assistant_type=None):
-        """Show a form for editing the assistant type."""
-        form_window = Toplevel(self.master)
-        form_window.title("Edit Assistant Type")
-
-        prompt_label = tk.Label(form_window, text="Enter Assistant Type:")
-        prompt_label.pack(padx=10, pady=10)
-
-        assistant_text = tk.Text(form_window, width=50, height=10, wrap=tk.WORD)
-        assistant_text.pack(padx=10, pady=10)
-
-        assistant_text.insert(tk.END, assistant_type, "")
-
-        save_button = tk.Button(
-            form_window,
-            text="Save",
-            command=lambda: self.save_assistant(
-                user, assistant_text.get("1.0", tk.END).strip(), form_window
-            ),
-        )
-        save_button.pack(pady=5)
-
-        cancel_button = tk.Button(
-            form_window, text="Cancel", command=form_window.destroy
-        )
-        cancel_button.pack(pady=5)
-
+    
     # **Bot Control and Console Functions**
 
     def toggle_bot(self, user, time_label, button):
