@@ -352,6 +352,8 @@ class BotGUI:
                 user["game_name"],
                 user["openai_api_key"],
                 user["stream_language"],
+                str(user["min_response_frequency"]), 
+                str(user["max_response_frequency"]),  
             ]
             process = subprocess.Popen(
                 command,
@@ -528,6 +530,7 @@ class BotGUI:
         """Show form to add or edit a user."""
         user_window = Toplevel(self.master)
         user_window.title("Edit User" if user else "Add New User")
+        user_window.geometry("600x500")
 
         tk.Label(user_window, text="Username:").grid(row=0, column=0, sticky="e")
         username_entry = tk.Entry(user_window)
@@ -536,6 +539,41 @@ class BotGUI:
         tk.Label(user_window, text="Password:").grid(row=1, column=0, sticky="e")
         password_entry = tk.Entry(user_window, show="*")
         password_entry.grid(row=1, column=1)
+        
+        tk.Label(user_window, text="Min Response Frequency (seconds):").grid(row=7, column=0, sticky="e")
+        min_response_entry = tk.Entry(user_window)
+        min_response_entry.grid(row=7, column=1)
+
+        # Add Max Response Frequency Field
+        tk.Label(user_window, text="Max Response Frequency (seconds):").grid(row=8, column=0, sticky="e")
+        max_response_entry = tk.Entry(user_window)
+        max_response_entry.grid(row=8, column=1)
+        
+        tooltip_text = (
+            "Warning: Setting a response frequency below 30 seconds may result in increased OpenAI usage and costs."
+        )
+        
+        def show_tooltip(event, text):
+            """Display tooltip near the widget."""
+            tooltip = tk.Toplevel(user_window)
+            tooltip.wm_overrideredirect(True)
+            tooltip.geometry(f"+{event.x_root + 20}+{event.y_root}")
+            label = tk.Label(tooltip, text=text, background="yellow", relief="solid", borderwidth=1)
+            label.pack()
+            tooltip.after(3000, tooltip.destroy)
+
+        def check_min_response_tooltip(event=None):
+            """Show tooltip if Min Response Frequency is less than 30 seconds."""
+            try:
+                min_value = int(min_response_entry.get())
+                if min_value < 30:
+                    show_tooltip(event, tooltip_text)
+            except ValueError:
+                pass
+        
+        min_response_entry.bind("<FocusOut>", check_min_response_tooltip)
+        min_response_entry.bind("<KeyRelease>", check_min_response_tooltip)
+        
 
         tk.Label(user_window, text="Stream Username:").grid(row=2, column=0, sticky="e")
         stream_username_entry = tk.Entry(user_window)
@@ -565,6 +603,9 @@ class BotGUI:
         if user:
             username_entry.insert(0, user["username"])
             password_entry.insert(0, user["password"])
+            min_response_entry.insert(0, user.get("min_response_frequency", "30"))
+            max_response_entry.insert(0, user.get("max_response_frequency", "150"))
+
             stream_username_entry.insert(0, user["stream_username"])
             game_name_entry.insert(0, user["game_name"])
             openai_key_entry.insert(0, user.get("openai_api_key", ""))
@@ -576,11 +617,21 @@ class BotGUI:
         def save_user():
             username = username_entry.get()
             password = password_entry.get()
+            min_response_frequency = int(min_response_entry.get())
+            max_response_frequency = int(max_response_entry.get())
             stream_username = stream_username_entry.get()
             game_name = game_name_entry.get()
             openai_api_key = openai_key_entry.get()
             selected_language = self.language_combobox.get()
             selected_assistant = self.assistant_combobox.get()
+            
+            if not username or not password:
+                messagebox.showerror("Input Error", "All fields are required.")
+                return
+
+            if min_response_frequency < 1 or max_response_frequency < min_response_frequency:
+                messagebox.showerror("Input Error", "Please enter a valid frequency range.")
+                return
 
             if (
                 not username
@@ -595,6 +646,8 @@ class BotGUI:
             if user:
                 user["username"] = username
                 user["password"] = password
+                user["min_response_frequency"] = min_response_frequency
+                user["max_response_frequency"] = max_response_frequency
                 user["stream_username"] = stream_username
                 user["game_name"] = game_name
                 user["openai_api_key"] = openai_api_key
@@ -604,6 +657,8 @@ class BotGUI:
                 new_user = {
                     "username": username,
                     "password": password,
+                    "min_response_frequency": min_response_frequency,
+                    "max_response_frequency": max_response_frequency,
                     "stream_username": stream_username,
                     "game_name": game_name,
                     "openai_api_key": openai_api_key,
@@ -622,7 +677,7 @@ class BotGUI:
                 self.create_user_controls(self.users.index(user), user)
 
         save_button = tk.Button(user_window, text="Save", command=save_user)
-        save_button.grid(row=7, column=1, pady=5)
+        save_button.grid(row=9, column=1, pady=5)
 
 
 def start_gui():

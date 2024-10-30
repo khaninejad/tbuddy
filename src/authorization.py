@@ -170,7 +170,7 @@ def get_access_token(
                 "user_id": user_id,
             }
             save_token(user_id, token_data)
-            print_info(f"New access token saved for user {user_id}: {token_data}")
+            print_info(f"New access token saved for user {user_id}")
             return access_token
         else:
             print_error("Failed to obtain access token.")

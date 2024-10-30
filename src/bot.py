@@ -203,10 +203,12 @@ def main():
     game_name = sys.argv[4]
     api_key = sys.argv[5]
     stream_language = sys.argv[5]
+    min_response_frequency = sys.argv[6]
+    max_response_frequency = sys.argv[7]
 
     stream_url = f"https://www.twitch.tv/{stream_username}"
 
-    interval = os.getenv("SCREENSHOT_INTERVAL", "30,90")
+    interval = os.getenv("SCREENSHOT_INTERVAL", f"{min_response_frequency},{max_response_frequency}")
     run_duration = int(os.getenv("RUN_DURATION", 600))
 
     broadcaster_id = os.getenv("TWITCH_BROADCASTER_ID")
