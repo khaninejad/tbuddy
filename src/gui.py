@@ -9,7 +9,7 @@ import json
 import time
 from tkinter import filedialog
 import webbrowser
-from load_assistant_type import assistants
+from load_assistant_type import assistants, load_assistant_types
 import sv_ttk
 from __version__ import __version__
 from config import CONFIG_FILE
