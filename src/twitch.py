@@ -3,6 +3,9 @@ import random
 import time
 import requests
 import os
+import io
+import sounddevice as sd
+import soundfile as sf
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -289,10 +292,16 @@ def take_screenshots_and_describe(
                 comment_list = comments.split("\n")
 
                 random_comment = random.choice(comment_list)
+                
+                text_to_speech(random_comment, client_id, access_token)
+                
+                
                 post_twitch_message(
                     broadcaster_id, sender_id, random_comment, client_id, access_token
                 )
                 print_info(f"{GREEN_TEXT}Posted comment: {random_comment}{RESET_TEXT}")
+                
+                
 
                 comment_filename = os.path.join(comment_folder, f"comments.txt")
                 with open(comment_filename, "a") as comment_file:
@@ -479,3 +488,47 @@ def generate_comments(
     except Exception as e:
         print_error("Error while generating comments", e)
         return None
+
+def text_to_speech(text, client_id, access_token):
+    """
+    Converts text to speech using OpenAI's Text-to-Speech API and plays the audio.
+    
+    Parameters:
+    - api_key (str): Your OpenAI API key.
+    - text (str): The text to convert to speech.
+    """
+    try:
+        # API request details
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Client-Id": client_id,
+            "Content-Type": "application/json",
+        }
+        
+        # Payload with the text to be spoken
+        payload = {
+            "input": {
+                "text": text
+            },
+            "model": "tts-1",
+            "voice": "alloy",  # Customize with any supported voice
+            "audioConfig": {
+                "audioEncoding": "MP3"
+            }
+        }
+
+        # Send request to the OpenAI TTS API
+        response = requests.post("https://api.openai.com/v1/speech/synthesize", headers=headers, json=payload)
+        
+        if response.status_code == 200:
+            # Play the audio response
+            audio_data = response.content
+            audio_stream = io.BytesIO(audio_data)
+            data, sample_rate = sf.read(audio_stream)
+            sd.play(data, sample_rate)
+            sd.wait()  # Wait until playback is finished
+        else:
+            print(f"Error: {response.status_code}, {response.text}")
+            
+    except Exception as e:
+        print(f"Error in TTS request: {e}")

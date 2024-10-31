@@ -242,7 +242,7 @@ class BotGUI:
         toggle_button.pack(side="left", padx=5)
 
         toggle_button.config(
-            command=lambda u=user, t=time_label, b=toggle_button: self.toggle_bot(
+            command=lambda u=user, t=time_label, b=toggle_button: self.bot_operations.toggle_bot(
                 u, t, b
             )
         )
@@ -312,18 +312,6 @@ class BotGUI:
         config = {"users": self.users}
         with open(CONFIG_FILE, "w") as config_file:
             json.dump(config, config_file)
-
-    def toggle_bot(self, user, time_label, button):
-        """Toggle the bot's start and stop functions for the selected user."""
-        username = user["username"]
-        if username in self.processes:
-
-            self.bot_operations.stop_bot(user)
-            button.config(text="Start")
-        else:
-
-            self.bot_operations.start_bot(user, time_label)
-            button.config(text="Stop")
 
 
     def start_usage_timer(self):
