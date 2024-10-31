@@ -3,6 +3,9 @@ import random
 import time
 import requests
 import os
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 
 from load_assistant_type import load_assistant_type
 from utils import (
@@ -13,9 +16,7 @@ from utils import (
     print_error,
     print_info,
 )
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
+
 
 
 def is_channel_offline(driver):
@@ -110,11 +111,11 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
             print_info(f"{GREEN_TEXT}Successfully logged in as {username}{RESET_TEXT}")
 
         except Exception as e:
-            print_error(f"No 2FA required or error occurred during 2FA process")
+            print_error("No 2FA required during 2FA process", e)
             pass
 
     except Exception as e:
-        print_error(f"Failed to log in or already logged in")
+        print_error("Failed to log in or already logged in", e)
 
 
 def post_twitch_message(broadcaster_id, sender_id, message, client_id, access_token):
@@ -145,7 +146,7 @@ def post_twitch_message(broadcaster_id, sender_id, message, client_id, access_to
                 f"Failed to post message. Status code: {response.status_code}. Response: {response.text}"
             )
     except Exception as e:
-        print_error(f"Error while sending message: {e}")
+        print_error("Error while sending message", e)
 
 
 def get_last_5_chat_messages(driver):
@@ -155,7 +156,7 @@ def get_last_5_chat_messages(driver):
         last_5_messages = [msg.text for msg in chat_messages[-10:]]
         return last_5_messages
     except Exception as e:
-        print_error(f"Error fetching chat messages: {e}")
+        print_error("Error fetching chat messages", e)
         return []
 
 
@@ -172,7 +173,7 @@ def click_start_watching(driver):
         ).click()
         print_info("Clicked 'Start Watching' button.")
     except Exception as e:
-        print_error(f"No 'Start Watching' button found")
+        print_error("No 'Start Watching' button found", e)
 
 
 def dismiss_subtember_callout(driver):
@@ -186,7 +187,7 @@ def dismiss_subtember_callout(driver):
         ).click()
         print_info("Dismissed 'Subtember Callout' ad.")
     except Exception as e:
-        print_error(f"No 'Subtember Callout' button found or error occurred: {e}")
+        print_error("No 'Subtember Callout' button found", e)
 
 
 def accept_cookies(driver):
@@ -200,7 +201,7 @@ def accept_cookies(driver):
         ).click()
         print_info("Clicked 'Accept' on the cookies consent banner.")
     except Exception as e:
-        print_error(f"No 'Accept' button for cookies consent found or error occurred")
+        print_error("No 'Accept' button for cookies consent found", e)
 
 
 from selenium.webdriver import ActionChains
@@ -224,7 +225,7 @@ def click_captions_button(driver):
         ).click()
         print_info("Clicked 'Captions (CC)' button.")
     except Exception as e:
-        print_error(f"No 'Captions (CC)' button found or error occurred:")
+        print_error("No 'Captions (CC)' button found", e)
 
 
 def take_screenshots_and_describe(
@@ -319,7 +320,7 @@ def wait_for_content(driver, timeout=20):
         )
         print_info("Content is visible")
     except Exception as e:
-        print_error(f"Error while waiting for content")
+        print_error("Error while waiting for content", e)
 
 
 def encode_image(image_path):
@@ -379,7 +380,7 @@ def describe_image(image_path, api_key, game_name):
             return None
 
     except Exception as e:
-        print_error(f"Error while describing {image_path}: {e}")
+        print_error("Error while describing {image_path}:", e)
         return None
 
 
@@ -394,7 +395,7 @@ def toggle_side_nav(driver):
         toggle_button.click()
         print_info("Toggled the side navigation.")
     except Exception as e:
-        print_error(f"Error while toggling side navigation")
+        print_error("Error while toggling side navigation")
 
 
 def generate_comments(
@@ -479,5 +480,5 @@ def generate_comments(
             return None
 
     except Exception as e:
-        print_error(f"Error while generating comments: {e}")
+        print_error("Error while generating comments", e)
         return None

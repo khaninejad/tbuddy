@@ -13,8 +13,8 @@ def load_assistant_type(assistant_name):
         with open(assistant_file, "r") as file:
             assistant_type = file.read().strip()
             return assistant_type
-    except FileNotFoundError:
-        print_error(f"Assistant type '{assistant_name}' not found.")
+    except FileNotFoundError as e:
+        print_error(f"Assistant type '{assistant_name}' not found.", e)
         return None
 
 

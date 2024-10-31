@@ -39,7 +39,7 @@ def get_disk_serial():
         else:
             serial = "unknown"
     except Exception as e:
-        print_error(f"Error retrieving disk serial: {e}")
+        print_error("Error retrieving disk serial", e)
         serial = "unknown"
     return serial
 

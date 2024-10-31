@@ -31,10 +31,10 @@ logging.basicConfig(
 )
 
 
-def print_error(message):
+def print_error(message, e=None):
     """Print an error message in red."""
     print(f"{RED_TEXT}Error: {message}{RESET_TEXT}")
-    logging.error(message)
+    logging.error(message, e)
 
 
 def print_info(message):

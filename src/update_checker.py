@@ -53,7 +53,7 @@ class UpdateChecker:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            print_error(f"Error fetching update info: {e}")
+            print_error("Error fetching update info", e)
             return None
 
     def compare_versions(self, v1, v2):
@@ -120,7 +120,7 @@ class UpdateChecker:
                 zip_ref.extractall(extract_dir)
             print_info(f"Update extracted to: {extract_dir}")
         except zipfile.BadZipFile as e:
-            print_error(f"Error extracting update: {e}")
+            print_error(f"Error extracting update", e)
 
     def install_update(self, last_release):
         """

@@ -64,8 +64,8 @@ class LicenseManager:
         try:
             with open(LICENSE_FILE, "r") as f:
                 license_data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            print_error("Error: License file not found or corrupt.")
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            print_error("Error: License file not found or corrupt.", e)
             return False
 
         device_id = license_data.get("device_id")
@@ -102,7 +102,7 @@ class LicenseManager:
                 )
                 return False
         except requests.RequestException as e:
-            print_error(f"Error: HTTP request failed: {e}")
+            print_error(f"Error: HTTP request failed", e)
             return False
 
     def prompt_for_serial_number(self):
