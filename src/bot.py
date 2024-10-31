@@ -148,46 +148,6 @@ def ensure_folders_exist(username):
     }
 
 
-def clean_folder(folder_path):
-    """Remove all files in the specified folder."""
-    if folder_path is None:
-        print_error("Folder path is None.")
-        return
-
-    if os.path.exists(folder_path):
-        for filename in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, filename)
-            try:
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-                    print(f"Deleted {file_path}")
-                elif os.path.isdir(file_path):
-                    shutil.rmtree(file_path)
-                    print(f"Deleted directory {file_path}")
-            except Exception as e:
-                print_error(f"Failed to delete {file_path}. Reason: {e}")
-    else:
-        print_error(f"Folder {folder_path} does not exist.")
-
-
-def clean_and_ensure_folders_for_active_user(username):
-    """Clean all folders for the active user and then recreate them."""
-    base_user_folder = os.path.join("users", username)
-
-    if os.path.exists(base_user_folder):
-        # Clean all subfolders
-        for folder_name in ["comments", "screenshots", "game_analysis", "user_profile"]:
-            folder_path = os.path.join(base_user_folder, folder_name)
-            clean_folder(folder_path)
-            os.makedirs(folder_path, exist_ok=True)  # Recreate the folder
-            print(f"Folder cleaned and recreated: {folder_path}")
-    else:
-        # Create the user folder and subfolders if they don't exist
-        os.makedirs(base_user_folder, exist_ok=True)
-        for folder_name in ["comments", "screenshots", "game_analysis", "user_profile"]:
-            os.makedirs(os.path.join(base_user_folder, folder_name), exist_ok=True)
-            print(f"Folder created: {os.path.join(base_user_folder, folder_name)}")
-
 
 def main():
     """Main function to start the bot."""

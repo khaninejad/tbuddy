@@ -12,7 +12,7 @@ from __version__ import __version__
 from config import CONFIG_FILE
 from license_manager import LicenseManager
 from update_checker import UpdateChecker
-from utils import print_info
+from utils import clean_folder, print_info
 
 
 LICENSED = False
@@ -32,6 +32,8 @@ class BotGUI:
     def __init__(self, master):
         self.master = master
         master.title("Twitch Bot - User Management")
+        
+        clean_folder('users')
 
         update_checker = UpdateChecker(__version__)
         update_available, last_release = update_checker.check_for_updates()

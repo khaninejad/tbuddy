@@ -76,7 +76,7 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
                     )
                 )
             )
-            print_info("2FA modal detected")
+            print_info("2FA modal detected, Please enter the 2FA code and click Send")
 
             verification_code = input(
                 f"{RED_TEXT}Enter the 6-digit verification code sent to your device: {RESET_TEXT}"
