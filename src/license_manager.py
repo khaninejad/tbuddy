@@ -1,6 +1,7 @@
 import os
 import json
 import sys
+import webbrowser
 import requests
 from tkinter import messagebox, simpledialog
 from config import BASE_URL, LICENSE_FILE
@@ -163,3 +164,11 @@ class LicenseManager:
             print_info("No license file found. Prompting for registration...")
             if self.register_license():
                 self.check_license_on_startup()
+    def upgrade_to_premium(self):
+        """Directs the user to a URL to upgrade to premium."""
+        webbrowser.open("https://your-upgrade-link.com")
+
+    def register_new_license(self):
+        """Register a new license by using the LicenseManager."""
+        if self.register_license():
+            self.prompt_for_serial_number()
