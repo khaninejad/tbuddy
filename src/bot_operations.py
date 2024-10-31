@@ -4,7 +4,7 @@ import time
 import threading
 import logging
 import tkinter as tk
-from tkinter import Toplevel, messagebox, scrolledtext
+from tkinter import ttk, messagebox, scrolledtext
 
 class BotOperations:
     def __init__(self, license_manager, parent_window):
@@ -121,6 +121,18 @@ class BotOperations:
                     console_output.see(tk.END)
                     console_output.config(state="disabled")
     
+    def toggle_bot(self, user, time_label, button):
+        """Toggle the bot's start and stop functions for the selected user."""
+        username = user["username"]
+        if username in self.processes:
+
+            self.stop_bot(user)
+            button.config(text="Start")
+        else:
+
+            self.start_bot(user, time_label)
+            button.config(text="Stop")
+    
     def open_console(self, user):
         """Open a console window for the selected user."""
         username = user["username"]
@@ -133,7 +145,7 @@ class BotOperations:
                 del self.console_windows[username]
 
         if username not in self.console_windows:
-            console_window = Toplevel(self.parent_window)  # Use parent_window here
+            console_window = tk.Toplevel(self.parent_window)
             console_window.title(f"Console - {username}")
 
             console_output = scrolledtext.ScrolledText(
@@ -141,8 +153,11 @@ class BotOperations:
             )
             console_output.pack()
 
+            # Create an Entry widget with padding and placeholder text
             input_field = tk.Entry(console_window, width=80)
             input_field.pack(pady=5)
+            input_field.insert(0, "Enter command here...")  # Placeholder text
+            input_field.bind("<FocusIn>", lambda event: input_field.delete(0, tk.END))  # Clear on focus
 
             def send_command():
                 command = input_field.get()
@@ -151,8 +166,14 @@ class BotOperations:
                     process.stdin.write(command + "\n")
                     process.stdin.flush()
                     input_field.delete(0, tk.END)
+                    input_field.insert(0, "Enter command here...")  # Reset placeholder after sending
 
-            send_button = tk.Button(console_window, text="Send", command=send_command)
+            # Create a blue "primary" Send button
+            send_button = tk.Button(
+                console_window, 
+                text="Send", 
+                command=send_command,
+            )
             send_button.pack(pady=5)
 
             if username not in self.console_windows:
