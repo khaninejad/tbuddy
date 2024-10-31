@@ -6,6 +6,8 @@ import os
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver import ActionChains
+
 
 from load_assistant_type import load_assistant_type
 from utils import (
@@ -16,7 +18,6 @@ from utils import (
     print_error,
     print_info,
 )
-
 
 
 def is_channel_offline(driver):
@@ -30,8 +31,7 @@ def is_channel_offline(driver):
         print_info("Channel is online.")
         return False
     except Exception as e:
-
-        print_info("Channel is offline or an error occurred.")
+        print_info("Channel is offline or an error occurred.", e)
         return True
 
 
@@ -202,9 +202,6 @@ def accept_cookies(driver):
         print_info("Clicked 'Accept' on the cookies consent banner.")
     except Exception as e:
         print_error("No 'Accept' button for cookies consent found", e)
-
-
-from selenium.webdriver import ActionChains
 
 
 def click_captions_button(driver):
@@ -395,7 +392,7 @@ def toggle_side_nav(driver):
         toggle_button.click()
         print_info("Toggled the side navigation.")
     except Exception as e:
-        print_error("Error while toggling side navigation")
+        print_error("Error while toggling side navigation", e)
 
 
 def generate_comments(
@@ -409,9 +406,9 @@ def generate_comments(
     """Generate Twitch-style comments without usernames for the current game context."""
 
     prompt = f"""
-    Generate a ONE SHORT ({random.randint(2, 30)} words) comment for a Twitch stream in '{stream_language}'.
+    Generate a ONE SHORT ({random.randint(2, 30)} words) comment for a Twitch stream in '{stream_language}' for category of '{game_name}'.
 
-    Incorporate gamer slang and emotes where appropriate, but AVOID excessive use of smiley faces or other emoticons. Avoid using hashtags and motivational phrase at the end.
+    Incorporate gamer slang and emotes where appropriate, but AVOID excessive use of smiley faces or other emoticons. Avoid using hashtags and motivational phrase at the end. make if feel natural.
 
     The following is a description of the game's scene: {description}
     The following are recent chat messages from the stream: {chat_messages_text}.
