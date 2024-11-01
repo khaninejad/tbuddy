@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import time
+from datetime import datetime
 
 
 WHITE_TEXT = "\033[97m"
@@ -81,3 +82,15 @@ def clean_folder(folder_path):
                 print_error(f"Failed to delete {folder_item_path}.", e)
     else:
         print_error(f"Folder {folder_path} does not exist.")
+
+def load_file_with_creation_time(file_path):
+    # Get file creation time (in seconds since epoch)
+    creation_time = os.path.getctime(file_path)
+    # Format creation time as "YYYY-MM-DD HH:MM:SS"
+    formatted_creation_time = datetime.fromtimestamp(creation_time).strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Read the content of the file
+    with open(file_path, 'r') as file:
+        content = file.read()
+    
+    return content, formatted_creation_time

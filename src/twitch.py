@@ -11,6 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver import ActionChains
+from datetime import datetime
 
 
 from load_assistant_type import load_assistant_type
@@ -19,6 +20,7 @@ from utils import (
     RED_TEXT,
     RESET_TEXT,
     countdown_timer,
+    load_file_with_creation_time,
     print_error,
     print_info,
 )
@@ -284,9 +286,18 @@ def take_screenshots_and_describe(
                 )
 
             chat_messages = get_last_5_chat_messages(driver)
+            
+            if screenshot_count > 1:
+                prev_index = screenshot_count - 1
+                prev_content, prev_creation_time = load_file_with_creation_time(os.path.join(
+                    description_folder, f"screenshot_{prev_index}.txt"
+                ))
+            else:
+                prev_content = "No previous scene"
+                prev_creation_time = ""
 
             comments = generate_comments(
-                api_key, game_name, description, chat_messages, stream_language
+                api_key, game_name, description, chat_messages, stream_language, prev_content, prev_creation_time
             )
             if comments:
 
@@ -433,6 +444,8 @@ def generate_comments(
     description,
     chat_messages_text,
     stream_language,
+    prev_content, 
+    prev_creation_time,
     assistant_name="IShowSpeed",
 ):
     """Generate Twitch-style comments without usernames for the current game context."""
@@ -442,10 +455,16 @@ def generate_comments(
 
     Incorporate gamer slang and emotes where appropriate, but AVOID excessive use of smiley faces or other emoticons. Avoid using hashtags and motivational phrase at the end. make if feel natural.
 
-    The following is a description of the game's scene: {description}
+    The following is a description of the game's scene now({datetime.now().strftime("%Y-%m-%d %H:%M:%S")}): {description}
+    #####
+    The following is a description of the game's previous scene({prev_creation_time}): {prev_content}
+    #####
     The following are recent chat messages from the stream: {chat_messages_text}.
+    #####
     - Do not include any quotes, numbers, bullet points, or hyphens before any of the comments. The comments should appear as plain text without any formatting symbols.
     """
+    
+    print_info(prompt)
 
     try:
         client = OpenAI( api_key = api_key)
