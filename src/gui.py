@@ -182,17 +182,20 @@ class BotGUI:
 
 
     def load_users(self):
-        """Load user data from the configuration file."""
+        """Load user data from the configuration file and sort by account name."""
         if os.path.exists(CONFIG_FILE):
             with open(CONFIG_FILE, "r") as config_file:
                 config = json.load(config_file)
-                self.users = config.get("users", [])
+                # Sort users by 'username' before assigning to self.users
+                self.users = sorted(config.get("users", []), key=lambda user: user["username"].lower())
         else:
             self.users = []
 
+        # Clear existing widgets from users_frame
         for widget in self.users_frame.winfo_children():
             widget.destroy()
 
+        # Create controls for each sorted user
         for index, user in enumerate(self.users):
             self.create_user_controls(index, user)
 
