@@ -4,7 +4,9 @@ import time
 import threading
 import logging
 import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
+from tkinter import messagebox, scrolledtext
+
+from utils import print_error, print_info
 
 class BotOperations:
     def __init__(self, license_manager, parent_window):
@@ -13,7 +15,7 @@ class BotOperations:
         self.start_times = {}
         self.license_manager = license_manager
         self.console_windows = {}
-        self.parent_window = parent_window  # Main tk.Tk window passed here
+        self.parent_window = parent_window 
 
     def start_bot(self, user, time_label):
         """Start the bot for the selected user."""
@@ -34,8 +36,7 @@ class BotOperations:
                 user["game_name"],
                 user["openai_api_key"],
                 user["stream_language"],
-                str(user["min_response_frequency"]), 
-                str(user["max_response_frequency"]),  
+                ",".join([str(user["min_response_frequency"]), str(user["max_response_frequency"])])
             ]
             process = subprocess.Popen(
                 command,

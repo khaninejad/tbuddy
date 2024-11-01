@@ -64,22 +64,20 @@ def countdown_timer(seconds, message_template="Waiting for {} seconds before log
 
 
 def clean_folder(folder_path):
-    """Remove all files in the specified folder."""
+    """Remove subdirectories in the specified folder if they are older than 24 hours."""
     if folder_path is None:
         print_error("Folder path is None.")
         return
 
     if os.path.exists(folder_path):
+        current_time = time.time()
         for filename in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, filename)
+            folder_item_path = os.path.join(folder_path, filename)
             try:
-                if os.path.isfile(file_path):
-                    os.remove(file_path)
-                    print(f"Deleted {file_path}")
-                elif os.path.isdir(file_path):
-                    shutil.rmtree(file_path)
-                    print(f"Deleted directory {file_path}")
+                if os.path.isdir(folder_item_path) and (current_time - os.path.getmtime(folder_item_path) > 86400):
+                    shutil.rmtree(folder_item_path)
+                    print(f"Deleted directory {folder_item_path}")
             except Exception as e:
-                print_error(f"Failed to delete {file_path}.", e)
+                print_error(f"Failed to delete {folder_item_path}.", e)
     else:
         print_error(f"Folder {folder_path} does not exist.")

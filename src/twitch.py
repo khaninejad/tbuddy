@@ -293,7 +293,7 @@ def take_screenshots_and_describe(
 
                 random_comment = random.choice(comment_list)
                 
-                text_to_speech(random_comment, client_id, access_token)
+                # text_to_speech(random_comment, client_id, access_token)
                 
                 
                 post_twitch_message(

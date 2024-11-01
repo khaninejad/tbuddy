@@ -151,7 +151,7 @@ def ensure_folders_exist(username):
 
 def main():
     """Main function to start the bot."""
-    print("Starting the bot...")
+    print("Starting the tbuddy...")
 
     if len(sys.argv) < 4:
         print("Usage: python bot.py <username> <strean_username> <game_name>")
@@ -162,13 +162,11 @@ def main():
     stream_username = sys.argv[3]
     game_name = sys.argv[4]
     api_key = sys.argv[5]
-    stream_language = sys.argv[5]
-    min_response_frequency = sys.argv[6]
-    max_response_frequency = sys.argv[7]
+    stream_language = sys.argv[6]
+    interval = sys.argv[7]
 
     stream_url = f"https://www.twitch.tv/{stream_username}"
 
-    interval = os.getenv("SCREENSHOT_INTERVAL", f"{min_response_frequency},{max_response_frequency}")
     run_duration = int(os.getenv("RUN_DURATION", 600))
 
     broadcaster_id = os.getenv("TWITCH_BROADCASTER_ID")
