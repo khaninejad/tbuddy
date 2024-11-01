@@ -34,9 +34,12 @@ logging.basicConfig(
 
 
 def print_error(message, e=None):
-    """Print an error message in red."""
+    """Print an error message in red and log it."""
     print(f"{RED_TEXT}Error: {message}{RESET_TEXT}")
-    logging.error(message, e)
+    if e:
+        logging.error(f"{message} Exception: {str(e)}", exc_info=True)
+    else:
+        logging.error(message)
 
 
 def print_info(message):
