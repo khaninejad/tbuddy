@@ -2,6 +2,7 @@ import base64
 import random
 import time
 import requests
+from openai import OpenAI
 import os
 import io
 import sounddevice as sd
@@ -339,16 +340,39 @@ def describe_image(image_path, api_key, game_name):
     """Describe the image using OpenAI API."""
     try:
         base64_image = encode_image(image_path)
+        
+        client = OpenAI( api_key = api_key)
 
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        }
 
-        payload = {
-            "model": "gpt-4o-mini",
-            "messages": [
-                {
+        # payload = {
+        #     "model": "gpt-4o-mini",
+        #     "messages": [
+        #         {
+        #             "role": "user",
+        #             "content": [
+        #                 {
+        #                     "type": "text",
+        #                     "text": f"Analyze the following screenshot from the game '{game_name}'. "
+        #                     "Provide a detailed description of the scene, characters, and any relevant elements visible in the image. "
+        #                     "Describe the setting, actions, and notable details as if explaining to someone who cannot see the image. "
+        #                     "Describe quest objective and summarize what needs to be completed on the quest"
+        #                     "Describe interesting things that you find from this screenshot or comments and IGNORE advertisements"
+        #                     "Describe What streamer or presenter talking in details by reading CC on video",
+        #                 },
+        #                 {
+        #                     "type": "image_url",
+        #                     "image_url": {
+        #                         "url": f"data:image/png;base64,{base64_image}"
+        #                     },
+        #                 },
+        #             ],
+        #         }
+        #     ],
+        #     "max_tokens": 500,
+        # }
+        
+        response = client.chat.completions.create(
+            messages=[{
                     "role": "user",
                     "content": [
                         {
@@ -367,17 +391,16 @@ def describe_image(image_path, api_key, game_name):
                             },
                         },
                     ],
-                }
-            ],
-            "max_tokens": 500,
-        }
-
-        response = requests.post(
-            "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
+                }],
+            model="gpt-4o-mini",
         )
 
-        if response.status_code == 200:
-            description = response.json()["choices"][0]["message"]["content"]
+        # response = requests.post(
+        #     "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
+        # )
+
+        if response.id:
+            description = response.choices[0].message.content
             return description
         else:
             print_error(
@@ -425,41 +448,20 @@ def generate_comments(
     """
 
     try:
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        }
+        client = OpenAI( api_key = api_key)
 
         assistant_type = load_assistant_type(assistant_name)
-        if assistant_type:
-            payload = {
-                "model": "gpt-4o-mini",
-                "messages": [
+
+
+        response = client.chat.completions.create(
+            messages=[
                     {"role": "system", "content": assistant_type},
-                    {"role": "user", "content": prompt},
-                ],
-                "max_tokens": 300,
-            }
-        else:
-
-            payload = {
-                "model": "gpt-4o-mini",
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "Act as a generic virtual assistant, enhancing audience engagement, assisting during livestreams, and supporting task management.",
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-                "max_tokens": 300,
-            }
-
-        response = requests.post(
-            "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
+                    {"role": "user", "content": prompt}],
+            model="gpt-4o-mini",
         )
 
-        if response.status_code == 200:
-            comments = response.json()["choices"][0]["message"]["content"]
+        if response.id:
+            comments = response.choices[0].message.content
 
             plain_comments = (
                 comments.replace("•", "").replace("-", "").replace('"', "").strip()
