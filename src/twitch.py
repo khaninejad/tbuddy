@@ -549,7 +549,7 @@ def text_to_speech(text, client_id, access_token):
             sd.play(data, sample_rate)
             sd.wait()  # Wait until playback is finished
         else:
-            print(f"Error: {response.status_code}, {response.text}")
+            print_error(f"Error: {response.status_code}, {response.text}")
             
     except Exception as e:
-        print(f"Error in TTS request: {e}")
+        print_error(f"Error in TTS request", e)

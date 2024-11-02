@@ -77,7 +77,7 @@ def clean_folder(folder_path):
             try:
                 if os.path.isdir(folder_item_path) and (current_time - os.path.getmtime(folder_item_path) > 86400):
                     shutil.rmtree(folder_item_path)
-                    print(f"Deleted directory {folder_item_path}")
+                    print_info(f"Deleted directory {folder_item_path}")
             except Exception as e:
                 print_error(f"Failed to delete {folder_item_path}.", e)
     else:

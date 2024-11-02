@@ -16,7 +16,7 @@ from twitch import (
     toggle_side_nav,
     twitch_login,
 )
-from utils import print_error, countdown_timer
+from utils import print_error, countdown_timer, print_info
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -37,7 +37,7 @@ def get_user_id(username, client_id, access_token):
         if user_data:
             return user_data[0]["id"]
         else:
-            print(f"No user found with username: {username}")
+            print_error(f"No user found with username: {username}")
     else:
         print_error(
             f"Fetching user data. Status code: {response.status_code}. Response: {response.text}"
@@ -59,7 +59,7 @@ def clean_screenshot_folder(parent_folder, output_folder_name):
             try:
                 if os.path.isfile(file_path):
                     os.remove(file_path)
-                    print(f"Deleted {file_path}")
+                    print_info(f"Deleted {file_path}")
             except Exception as e:
                 print_error(f"Failed to delete {file_path}. Reason: {e}")
     else:
@@ -151,10 +151,10 @@ def ensure_folders_exist(username):
 
 def main():
     """Main function to start the bot."""
-    print("Starting the tbuddy...")
+    print_info("Starting the tbuddy...")
 
-    if len(sys.argv) < 4:
-        print("Usage: python bot.py <username> <strean_username> <game_name>")
+    if len(sys.argv) < 7:
+        print_info("Usage: python bot.py invalid")
         sys.exit(1)
 
     username = sys.argv[1]
@@ -188,10 +188,7 @@ def main():
     sender_id = get_user_id(username, client_id, access_token)
 
     user_folders = ensure_folders_exist(username)
-    print("Folder structure created for user:", username)
-    print("Folders:")
-    for folder_name, folder_path in user_folders.items():
-        print(f"- {folder_name}: {folder_path}")
+    print_info(f"Folder structure created for user: {username}")
 
     comments_folder = user_folders["comments"]
     screenshots_folder = user_folders["screenshots"]
@@ -199,7 +196,7 @@ def main():
 
     twitch_login(driver, username, password)
 
-    print("Navigating to stream URL")
+    print_info("Navigating to stream URL")
     driver.get(stream_url)
     wait_stream_start = 5
     countdown_timer(wait_stream_start, "Waiting for stream to start watching...")
