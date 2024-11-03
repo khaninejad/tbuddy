@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twitch OAuth Callback</title>
+</head>
+<body>
+    <h1>Twitch OAuth Callback</h1>
+    <script>
+        // Example: Send a POST request to /token
+        const hash = document.location.hash.substring(1); // Skip the '#' at the start
+        const params = new URLSearchParams(hash); // Create a URLSearchParams object from the hash
+
+        // Extract parameters
+        const accessToken = params.get('access_token'); // Get the access_token value
+        const scope = params.get('scope'); // Get the scope
+        const state = params.get('state'); // Get the state
+        const tokenType = params.get('token_type'); // Get the token_type
+
+        // Log extracted values for debugging
+        console.log('Access Token:', accessToken);
+        console.log('Scope:', scope);
+        console.log('State:', state);
+        console.log('Token Type:', tokenType);
+
+        fetch('/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                accessToken: accessToken, 
+                queryParams: {
+                    scope: scope,
+                    state: state,
+                    tokenType: tokenType,
+                }
+            }),
+        })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch((error) => console.error('Error:', error));
+    </script>
+</body>
+</html>

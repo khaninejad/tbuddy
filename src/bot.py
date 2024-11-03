@@ -98,7 +98,7 @@ def create_new_chrome_instance(sender_id):
 
     driver = Driver(
         uc=True,
-        headless2=True,
+        headless2=False,
         user_data_dir=user_data_dir,
         chromium_arg="--mute-audio",
     )
@@ -172,14 +172,17 @@ def main():
     broadcaster_id = os.getenv("TWITCH_BROADCASTER_ID")
     sender_id = os.getenv("TWITCH_SENDER_ID")
     client_id = os.getenv("TWITCH_CLIENT_ID")
-    client_secret = os.getenv("TWITCH_CLIENT_SECRET")
     redirect_uri = os.getenv("TWITCH_REDIRECT_URI")
 
     driver = get_chrome_instance(username)
+    
+    twitch_login(driver, username, password)
+    scopes = ["user:write:chat"]
 
     access_token = get_access_token(
-        driver, username, client_id, client_secret, redirect_uri, username, password
+        driver, username, client_id, redirect_uri, scopes, username, password
     )
+    
     if not access_token or not validate_token(access_token, client_id):
         print_error("Invalid access token. Exiting.")
         return
@@ -194,7 +197,7 @@ def main():
     screenshots_folder = user_folders["screenshots"]
     output_folder = user_folders["game_analysis"]
 
-    twitch_login(driver, username, password)
+    
 
     print_info("Navigating to stream URL")
     driver.get(stream_url)

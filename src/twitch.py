@@ -50,6 +50,15 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
         login_wait_interval = 5
         countdown_timer(login_wait_interval, "Waiting for {} seconds before login...")
         time.sleep(login_wait_interval)
+        
+        try:
+            authorize_button = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, '.js-authorize'))
+            )
+            print_info("Authorize button found, clicking it...")
+            authorize_button.click()
+        except Exception:
+            print_info("Authorize button not found, continuing...")
 
         username_input = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "login-username"))
@@ -65,6 +74,9 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
             By.CSS_SELECTOR, 'button[data-a-target="passport-login-button"]'
         )
         login_button.click()
+        
+
+      
 
         login_success_interval = 5
         countdown_timer(
