@@ -4,6 +4,7 @@ import sys
 import time
 import requests
 import warnings
+from config import CLIENT_ID
 from dotenv import load_dotenv
 from seleniumbase import Driver
 
@@ -171,24 +172,21 @@ def main():
 
     broadcaster_id = os.getenv("TWITCH_BROADCASTER_ID")
     sender_id = os.getenv("TWITCH_SENDER_ID")
-    client_id = os.getenv("TWITCH_CLIENT_ID")
-    redirect_uri = os.getenv("TWITCH_REDIRECT_URI")
 
     driver = get_chrome_instance(username)
     
     twitch_login(driver, username, password)
-    scopes = ["user:write:chat"]
 
     access_token = get_access_token(
-        driver, username, client_id, redirect_uri, scopes, username
+        driver, username, username
     )
     
-    if not access_token or not validate_token(access_token, client_id):
+    if not access_token or not validate_token(access_token, CLIENT_ID):
         print_error("Invalid access token. Exiting.")
         return
 
-    broadcaster_id = get_user_id(stream_username, client_id, access_token)
-    sender_id = get_user_id(username, client_id, access_token)
+    broadcaster_id = get_user_id(stream_username, CLIENT_ID, access_token)
+    sender_id = get_user_id(username, CLIENT_ID, access_token)
 
     user_folders = ensure_folders_exist(username)
     print_info(f"Folder structure created for user: {username}")
@@ -221,7 +219,7 @@ def main():
         comments_folder,
         broadcaster_id,
         sender_id,
-        client_id,
+        CLIENT_ID,
         access_token,
         stream_language,
         username,
