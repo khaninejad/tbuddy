@@ -36,7 +36,9 @@ class BotOperations:
                 user["game_name"],
                 user["openai_api_key"],
                 user["stream_language"],
-                ",".join([str(user["min_response_frequency"]), str(user["max_response_frequency"])])
+                ",".join([str(user["min_response_frequency"]), str(user["max_response_frequency"])]),
+                user["assistant_type"],
+                
             ]
             process = subprocess.Popen(
                 command,

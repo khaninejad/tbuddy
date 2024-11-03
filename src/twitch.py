@@ -290,6 +290,7 @@ def take_screenshots_and_describe(
     access_token,
     stream_language,
     username_arg,
+    assistant_type
 ):
     """Take screenshots and describe them immediately, skipping the first screenshot."""
     start_time = time.time()
@@ -347,6 +348,7 @@ def take_screenshots_and_describe(
                 stream_language,
                 prev_content,
                 prev_creation_time,
+                assistant_type
             )
             if comments:
 
@@ -465,20 +467,21 @@ def generate_comments(
     assistant_name="IShowSpeed",
 ):
     """Generate Twitch-style comments without usernames for the current game context."""
+    
 
     prompt = f"""
-    Generate a ONE SHORT ({random.randint(2, 30)} words) comment for a Twitch stream in '{stream_language}' for category of '{game_name}'.
+        Generate a SHORT ({random.randint(2, 30)} words) comment for a Twitch stream in '{stream_language}' for the category '{game_name}'.
 
-    Incorporate gamer slang and emotes where appropriate, but AVOID excessive use of smiley faces or other emoticons. Avoid using hashtags and motivational phrase at the end. make if feel natural.
-
-    The following is a description of the game's scene now({datetime.now().strftime("%Y-%m-%d %H:%M:%S")}): {description}
-    
-    The following is a description of the game's previous scene({prev_creation_time}): {prev_content}
-    
-    The following are recent chat messages from the stream: {chat_messages_text}.
-    
-    - Do not include any quotes, numbers, bullet points, or hyphens before any of the comments. The comments should appear as plain text without any formatting symbols.
-    """
+        Avoid phrases like "Let’s go," "Let’s," and any similar expressions. Instead, use unique expressions that convey hype without direct calls to action. 
+        
+        The following is a description of the game's scene now ({datetime.now().strftime("%Y-%m-%d %H:%M:%S")}): {description}
+        
+        The following is a description of the game's previous scene ({prev_creation_time}): {prev_content}
+        
+        The following are recent chat messages from the stream: {chat_messages_text}.
+        
+        - Do not include any quotes, numbers, bullet points, or hyphens before any of the comments. The comments should appear as plain text without any formatting symbols.
+        """
 
     try:
         client = OpenAI(api_key=api_key)

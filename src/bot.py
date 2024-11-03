@@ -165,6 +165,7 @@ def main():
     api_key = sys.argv[5]
     stream_language = sys.argv[6]
     interval = sys.argv[7]
+    assistant_type = sys.argv[8]
 
     stream_url = f"https://www.twitch.tv/{stream_username}"
 
@@ -223,6 +224,7 @@ def main():
         access_token,
         stream_language,
         username,
+        assistant_type
     )
 
     driver.quit()
