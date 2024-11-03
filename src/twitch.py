@@ -1,4 +1,5 @@
 import base64
+from pathlib import Path
 import random
 import time
 import requests
@@ -40,18 +41,20 @@ def is_channel_offline(driver):
         print_info("Channel is offline or an error occurred.", e)
         return True
 
+
 def authorize_client(driver, final_url):
     if final_url.startswith("https://id.twitch.tv/oauth2/authorize?"):
         print_info("Redirected to OAuth authorization. Awaiting user authorization.")
         try:
             authorize_button = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, '.js-authorize'))
+                EC.presence_of_element_located((By.CSS_SELECTOR, ".js-authorize"))
             )
             print_info("Authorize button found, clicking it...")
             authorize_button.click()
         except Exception:
             print_info("Authorize button not found, continuing...")
-    return # temporary
+    return
+
 
 def twitch_login(driver, username, password, auth_url="https://twitch.tv/login"):
     """Login to Twitch using the provided username and password."""
@@ -62,26 +65,28 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
         login_wait_interval = 5
         countdown_timer(login_wait_interval, "Waiting for {} seconds before login...")
         time.sleep(login_wait_interval)
-        
+
         final_url = driver.current_url
         print_info(f"Final URL after redirection: {final_url}")
-        
-        if("https://www.twitch.tv/?no-reload=true" in final_url):
+
+        if "https://www.twitch.tv/?no-reload=true" in final_url:
             print_info(f"{GREEN_TEXT}Already logged in as {username}{RESET_TEXT}")
             return
-        
+
         if final_url.startswith("https://id.twitch.tv/oauth2/authorize?"):
-            print_info("Redirected to OAuth authorization. Awaiting user authorization.")
+            print_info(
+                "Redirected to OAuth authorization. Awaiting user authorization."
+            )
             try:
                 authorize_button = WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, '.js-authorize'))
+                    EC.presence_of_element_located((By.CSS_SELECTOR, ".js-authorize"))
                 )
                 print_info("Authorize button found, clicking it...")
                 authorize_button.click()
             except Exception:
                 print_info("Authorize button not found, continuing...")
-        
-        if("https://www.twitch.tv/login" in final_url):
+
+        if "https://www.twitch.tv/login" in final_url:
 
             username_input = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.ID, "login-username"))
@@ -97,9 +102,6 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
                 By.CSS_SELECTOR, 'button[data-a-target="passport-login-button"]'
             )
             login_button.click()
-            
-
-        
 
             login_success_interval = 5
             countdown_timer(
@@ -117,7 +119,9 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
                         )
                     )
                 )
-                print_info("2FA modal detected, Please enter the 2FA code and click Send")
+                print_info(
+                    "2FA modal detected, Please enter the 2FA code and click Send"
+                )
 
                 verification_code = input(
                     f"{RED_TEXT}Enter the 6-digit verification code sent to your device: {RESET_TEXT}"
@@ -140,7 +144,10 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
                 time.sleep(wait_submit_button)
                 submit_button = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located(
-                        (By.CSS_SELECTOR, 'div[data-a-target="tw-core-button-label-text"]')
+                        (
+                            By.CSS_SELECTOR,
+                            'div[data-a-target="tw-core-button-label-text"]',
+                        )
                     )
                 )
                 submit_button.click()
@@ -149,7 +156,9 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
                 wait_login_compleation = 10
                 countdown_timer(wait_login_compleation, "Wait {} for login compleation")
                 time.sleep(wait_login_compleation)
-                print_info(f"{GREEN_TEXT}Successfully logged in as {username}{RESET_TEXT}")
+                print_info(
+                    f"{GREEN_TEXT}Successfully logged in as {username}{RESET_TEXT}"
+                )
 
             except Exception as e:
                 print_error("No 2FA required during 2FA process", e)
@@ -178,7 +187,7 @@ def post_twitch_message(broadcaster_id, sender_id, message, client_id, access_to
     try:
         response = requests.post(url, headers=headers, json=payload)
 
-        if response.status_code == 204:
+        if response.status_code == 200:
             print_info(
                 f"{GREEN_TEXT}Successfully posted message: {message}{RESET_TEXT}"
             )
@@ -314,41 +323,43 @@ def take_screenshots_and_describe(
                 )
                 with open(description_filename, "w") as desc_file:
                     desc_file.write(description)
-                print_info(f"Description saved as {description_filename}")
             else:
                 print_info(
                     f"{RED_TEXT}No description returned for screenshot {screenshot_count}{RESET_TEXT}"
                 )
 
             chat_messages = get_last_5_chat_messages(driver)
-            
+
             if screenshot_count > 1:
                 prev_index = screenshot_count - 1
-                prev_content, prev_creation_time = load_file_with_creation_time(os.path.join(
-                    description_folder, f"screenshot_{prev_index}.txt"
-                ))
+                prev_content, prev_creation_time = load_file_with_creation_time(
+                    os.path.join(description_folder, f"screenshot_{prev_index}.txt")
+                )
             else:
                 prev_content = "No previous scene"
                 prev_creation_time = ""
 
             comments = generate_comments(
-                api_key, game_name, description, chat_messages, stream_language, prev_content, prev_creation_time
+                api_key,
+                game_name,
+                description,
+                chat_messages,
+                stream_language,
+                prev_content,
+                prev_creation_time,
             )
             if comments:
 
                 comment_list = comments.split("\n")
 
                 random_comment = random.choice(comment_list)
-                
-                # text_to_speech(random_comment, client_id, access_token)
-                
-                
+
+                text_to_speech(random_comment, api_key, username_arg)
+
                 post_twitch_message(
                     broadcaster_id, sender_id, random_comment, client_id, access_token
                 )
                 print_info(f"{GREEN_TEXT}Posted comment: {random_comment}{RESET_TEXT}")
-                
-                
 
                 comment_filename = os.path.join(comment_folder, f"comments.txt")
                 with open(comment_filename, "a") as comment_file:
@@ -386,39 +397,12 @@ def describe_image(image_path, api_key, game_name):
     """Describe the image using OpenAI API."""
     try:
         base64_image = encode_image(image_path)
-        
-        client = OpenAI( api_key = api_key)
 
+        client = OpenAI(api_key=api_key)
 
-        # payload = {
-        #     "model": "gpt-4o-mini",
-        #     "messages": [
-        #         {
-        #             "role": "user",
-        #             "content": [
-        #                 {
-        #                     "type": "text",
-        #                     "text": f"Analyze the following screenshot from the game '{game_name}'. "
-        #                     "Provide a detailed description of the scene, characters, and any relevant elements visible in the image. "
-        #                     "Describe the setting, actions, and notable details as if explaining to someone who cannot see the image. "
-        #                     "Describe quest objective and summarize what needs to be completed on the quest"
-        #                     "Describe interesting things that you find from this screenshot or comments and IGNORE advertisements"
-        #                     "Describe What streamer or presenter talking in details by reading CC on video",
-        #                 },
-        #                 {
-        #                     "type": "image_url",
-        #                     "image_url": {
-        #                         "url": f"data:image/png;base64,{base64_image}"
-        #                     },
-        #                 },
-        #             ],
-        #         }
-        #     ],
-        #     "max_tokens": 500,
-        # }
-        
         response = client.chat.completions.create(
-            messages=[{
+            messages=[
+                {
                     "role": "user",
                     "content": [
                         {
@@ -437,13 +421,10 @@ def describe_image(image_path, api_key, game_name):
                             },
                         },
                     ],
-                }],
+                }
+            ],
             model="gpt-4o-mini",
         )
-
-        # response = requests.post(
-        #     "https://api.openai.com/v1/chat/completions", headers=headers, json=payload
-        # )
 
         if response.id:
             description = response.choices[0].message.content
@@ -479,7 +460,7 @@ def generate_comments(
     description,
     chat_messages_text,
     stream_language,
-    prev_content, 
+    prev_content,
     prev_creation_time,
     assistant_name="IShowSpeed",
 ):
@@ -491,26 +472,24 @@ def generate_comments(
     Incorporate gamer slang and emotes where appropriate, but AVOID excessive use of smiley faces or other emoticons. Avoid using hashtags and motivational phrase at the end. make if feel natural.
 
     The following is a description of the game's scene now({datetime.now().strftime("%Y-%m-%d %H:%M:%S")}): {description}
-    #####
+    
     The following is a description of the game's previous scene({prev_creation_time}): {prev_content}
-    #####
+    
     The following are recent chat messages from the stream: {chat_messages_text}.
-    #####
+    
     - Do not include any quotes, numbers, bullet points, or hyphens before any of the comments. The comments should appear as plain text without any formatting symbols.
     """
-    
-    print_info(prompt)
 
     try:
-        client = OpenAI( api_key = api_key)
+        client = OpenAI(api_key=api_key)
 
         assistant_type = load_assistant_type(assistant_name)
 
-
         response = client.chat.completions.create(
             messages=[
-                    {"role": "system", "content": assistant_type},
-                    {"role": "user", "content": prompt}],
+                {"role": "system", "content": assistant_type},
+                {"role": "user", "content": prompt},
+            ],
             model="gpt-4o-mini",
         )
 
@@ -545,46 +524,39 @@ def generate_comments(
         print_error("Error while generating comments", e)
         return None
 
-def text_to_speech(text, client_id, access_token):
+
+def text_to_speech(text, api_key, username):
     """
     Converts text to speech using OpenAI's Text-to-Speech API and plays the audio.
-    
+
     Parameters:
     - api_key (str): Your OpenAI API key.
     - text (str): The text to convert to speech.
     """
     try:
-        # API request details
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Client-Id": client_id,
-            "Content-Type": "application/json",
-        }
-        
-        # Payload with the text to be spoken
-        payload = {
-            "input": {
-                "text": text
-            },
-            "model": "tts-1",
-            "voice": "alloy",  # Customize with any supported voice
-            "audioConfig": {
-                "audioEncoding": "MP3"
-            }
-        }
+        client = OpenAI(api_key=api_key)
 
-        # Send request to the OpenAI TTS API
-        response = requests.post("https://api.openai.com/v1/speech/synthesize", headers=headers, json=payload)
-        
-        if response.status_code == 200:
-            # Play the audio response
-            audio_data = response.content
-            audio_stream = io.BytesIO(audio_data)
-            data, sample_rate = sf.read(audio_stream)
+        response = client.audio.speech.create(
+            input=text,
+            voice="alloy",
+            model="tts-1",
+        )
+        audio_buffer = io.BytesIO()
+
+        for chunk in response.iter_bytes():
+
+            audio_buffer.write(chunk)
+            audio_buffer.seek(0)
+
+            data, sample_rate = sf.read(audio_buffer, dtype="float32")
+
             sd.play(data, sample_rate)
-            sd.wait()  # Wait until playback is finished
-        else:
-            print_error(f"Error: {response.status_code}, {response.text}")
-            
+            sd.wait()
+
+            audio_buffer.seek(0)
+            audio_buffer.truncate(0)
+
+        print("Finished streaming and playing audio.")
+
     except Exception as e:
         print_error(f"Error in TTS request", e)

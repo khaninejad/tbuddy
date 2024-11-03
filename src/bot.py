@@ -99,7 +99,7 @@ def create_new_chrome_instance(sender_id):
 
     driver = Driver(
         uc=True,
-        headless2=False,
+        headless2=True,
         user_data_dir=user_data_dir,
         chromium_arg="--mute-audio",
     )
