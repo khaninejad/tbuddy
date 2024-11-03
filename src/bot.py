@@ -180,7 +180,7 @@ def main():
     scopes = ["user:write:chat"]
 
     access_token = get_access_token(
-        driver, username, client_id, redirect_uri, scopes, username, password
+        driver, username, client_id, redirect_uri, scopes, username
     )
     
     if not access_token or not validate_token(access_token, client_id):

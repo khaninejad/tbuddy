@@ -31,7 +31,7 @@ def run_server(username):
         print_error(f"Failed to start server.py: {e}")
         
 
-def get_access_token(driver, user_id, client_id, redirect_uri, scopes, username, password):
+def get_access_token(driver, user_id, client_id, redirect_uri, scopes, username):
     """Get a new access token using the Implicit Grant Flow."""
     token_data = load_token(user_id)
 
@@ -45,13 +45,10 @@ def get_access_token(driver, user_id, client_id, redirect_uri, scopes, username,
     server_thread.start()
     print_info(f"Started server.py with username: {username} in a separate thread.")
 
-
-    # # Generate the OAuth URL for Implicit Grant Flow
-    # auth_url = generate_auth_url(client_id, redirect_uri, scopes)
-    # twitch_login(driver, username, password, auth_url)
-
-
     open_auth_url(driver, client_id, redirect_uri, scopes)
+    
+    token_data = load_token(user_id)
+    return token_data['access_token']
 
 
 def kill_port(port):
@@ -91,6 +88,8 @@ def open_auth_url(driver, client_id, redirect_uri, scopes):
     print(auth_url)
     driver.open(auth_url)
     print("Opening authorization URL:", auth_url)
+    final_url = driver.current_url
+    print_info(f"Final URL after auth: {final_url}")
 
 def get_token_file(user_id, base_folder="users"):
     """Get the token file path for a specific user."""

@@ -51,86 +51,85 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
         countdown_timer(login_wait_interval, "Waiting for {} seconds before login...")
         time.sleep(login_wait_interval)
         
-        try:
-            authorize_button = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, '.js-authorize'))
+        final_url = driver.current_url
+        print_info(f"Final URL after redirection: {final_url}")
+        
+        if("https://www.twitch.tv/?no-reload=true" in final_url):
+            print_info(f"{GREEN_TEXT}Already logged in as {username}{RESET_TEXT}")
+            return
+        
+        if("https://www.twitch.tv/login" in final_url):
+            username_input = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "login-username"))
             )
-            print_info("Authorize button found, clicking it...")
-            authorize_button.click()
-        except Exception:
-            print_info("Authorize button not found, continuing...")
+            username_input.send_keys(username)
 
-        username_input = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "login-username"))
-        )
-        username_input.send_keys(username)
+            password_input = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "password-input"))
+            )
+            password_input.send_keys(password)
 
-        password_input = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "password-input"))
-        )
-        password_input.send_keys(password)
+            login_button = driver.find_element(
+                By.CSS_SELECTOR, 'button[data-a-target="passport-login-button"]'
+            )
+            login_button.click()
+            
 
-        login_button = driver.find_element(
-            By.CSS_SELECTOR, 'button[data-a-target="passport-login-button"]'
-        )
-        login_button.click()
         
 
-      
-
-        login_success_interval = 5
-        countdown_timer(
-            login_success_interval,
-            "Wait {} for a short while to ensure login is successful",
-        )
-        time.sleep(login_success_interval)
-        try:
-
-            modal_header = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located(
-                    (
-                        By.XPATH,
-                        '//h2[@id="modal-root-header" and contains(text(), "Verify login code")]',
-                    )
-                )
+            login_success_interval = 5
+            countdown_timer(
+                login_success_interval,
+                "Wait {} for a short while to ensure login is successful",
             )
-            print_info("2FA modal detected, Please enter the 2FA code and click Send")
+            time.sleep(login_success_interval)
+            try:
 
-            verification_code = input(
-                f"{RED_TEXT}Enter the 6-digit verification code sent to your device: {RESET_TEXT}"
-            )
-
-            if len(verification_code) != 6:
-                raise ValueError("Verification code must be 6 digits")
-
-            for i, digit in enumerate(verification_code, start=1):
-                digit_input = WebDriverWait(driver, 10).until(
+                modal_header = WebDriverWait(driver, 10).until(
                     EC.presence_of_element_located(
-                        (By.CSS_SELECTOR, f'input[aria-label="Digit {i}"]')
+                        (
+                            By.XPATH,
+                            '//h2[@id="modal-root-header" and contains(text(), "Verify login code")]',
+                        )
                     )
                 )
-                digit_input.send_keys(digit)
-                print_info(f"Entered digit {digit}")
+                print_info("2FA modal detected, Please enter the 2FA code and click Send")
 
-            wait_submit_button = 10
-            countdown_timer(wait_submit_button, "Wait {} for submit buttton")
-            time.sleep(wait_submit_button)
-            submit_button = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located(
-                    (By.CSS_SELECTOR, 'div[data-a-target="tw-core-button-label-text"]')
+                verification_code = input(
+                    f"{RED_TEXT}Enter the 6-digit verification code sent to your device: {RESET_TEXT}"
                 )
-            )
-            submit_button.click()
-            print_info("Submit button clicked")
 
-            wait_login_compleation = 10
-            countdown_timer(wait_login_compleation, "Wait {} for login compleation")
-            time.sleep(wait_login_compleation)
-            print_info(f"{GREEN_TEXT}Successfully logged in as {username}{RESET_TEXT}")
+                if len(verification_code) != 6:
+                    raise ValueError("Verification code must be 6 digits")
 
-        except Exception as e:
-            print_error("No 2FA required during 2FA process", e)
-            pass
+                for i, digit in enumerate(verification_code, start=1):
+                    digit_input = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located(
+                            (By.CSS_SELECTOR, f'input[aria-label="Digit {i}"]')
+                        )
+                    )
+                    digit_input.send_keys(digit)
+                    print_info(f"Entered digit {digit}")
+
+                wait_submit_button = 10
+                countdown_timer(wait_submit_button, "Wait {} for submit buttton")
+                time.sleep(wait_submit_button)
+                submit_button = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, 'div[data-a-target="tw-core-button-label-text"]')
+                    )
+                )
+                submit_button.click()
+                print_info("Submit button clicked")
+
+                wait_login_compleation = 10
+                countdown_timer(wait_login_compleation, "Wait {} for login compleation")
+                time.sleep(wait_login_compleation)
+                print_info(f"{GREEN_TEXT}Successfully logged in as {username}{RESET_TEXT}")
+
+            except Exception as e:
+                print_error("No 2FA required during 2FA process", e)
+                pass
 
     except Exception as e:
         print_error("Failed to log in or already logged in", e)
