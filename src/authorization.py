@@ -11,7 +11,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import urllib
 
-from twitch import twitch_login
+from twitch import authorize_client, twitch_login
 from utils import print_error, print_info
 
 
@@ -90,6 +90,7 @@ def open_auth_url(driver, client_id, redirect_uri, scopes):
     print("Opening authorization URL:", auth_url)
     final_url = driver.current_url
     print_info(f"Final URL after auth: {final_url}")
+    authorize_client(driver, final_url)
 
 def get_token_file(user_id, base_folder="users"):
     """Get the token file path for a specific user."""

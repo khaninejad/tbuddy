@@ -40,6 +40,18 @@ def is_channel_offline(driver):
         print_info("Channel is offline or an error occurred.", e)
         return True
 
+def authorize_client(driver, final_url):
+    if final_url.startswith("https://id.twitch.tv/oauth2/authorize?"):
+        print_info("Redirected to OAuth authorization. Awaiting user authorization.")
+        try:
+            authorize_button = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, '.js-authorize'))
+            )
+            print_info("Authorize button found, clicking it...")
+            authorize_button.click()
+        except Exception:
+            print_info("Authorize button not found, continuing...")
+    return # temporary
 
 def twitch_login(driver, username, password, auth_url="https://twitch.tv/login"):
     """Login to Twitch using the provided username and password."""
@@ -58,7 +70,19 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
             print_info(f"{GREEN_TEXT}Already logged in as {username}{RESET_TEXT}")
             return
         
+        if final_url.startswith("https://id.twitch.tv/oauth2/authorize?"):
+            print_info("Redirected to OAuth authorization. Awaiting user authorization.")
+            try:
+                authorize_button = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, '.js-authorize'))
+                )
+                print_info("Authorize button found, clicking it...")
+                authorize_button.click()
+            except Exception:
+                print_info("Authorize button not found, continuing...")
+        
         if("https://www.twitch.tv/login" in final_url):
+
             username_input = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.ID, "login-username"))
             )
