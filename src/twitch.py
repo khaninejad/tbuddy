@@ -67,7 +67,6 @@ def twitch_login(driver, username, password, auth_url="https://twitch.tv/login")
         time.sleep(login_wait_interval)
 
         final_url = driver.current_url
-        print_info(f"Final URL after redirection: {final_url}")
 
         if "https://www.twitch.tv/?no-reload=true" in final_url:
             print_info(f"{GREEN_TEXT}Already logged in as {username}{RESET_TEXT}")
@@ -470,17 +469,21 @@ def generate_comments(
     
 
     prompt = f"""
-        Generate a SHORT ({random.randint(2, 30)} words) comment or question or tip for a Twitch stream in '{stream_language}' for the category '{game_name}' addressing streamer.
+        Generate an engaging Twitch stream comment.
+        - Length: {random.randint(2, 30)} words
+        - Language: {stream_language}
+        - Category: {game_name}
+        - Tone: Address the streamer; sound REAL, not mechanical or robotic.
+        - Avoid direct calls to action like "Let's go" or "Let's." Use unique expressions for hype.
+        - Format: Plain text, no quotes, numbers, bullet points, or hyphens at the start.
+        - Response Type: casual comment, Question, Tip about Game or Reply to Chat messages
 
-        Avoid phrases like "Let’s go," "Let’s," and any similar expressions. Instead, use unique expressions that convey hype without direct calls to action. 
-        
-        The following is a description of the game's scene now ({datetime.now().strftime("%Y-%m-%d %H:%M:%S")}): {description}
-        
-        The following is a description of the game's previous scene ({prev_creation_time}): {prev_content}
-        
-        The following are recent chat messages from the stream: {chat_messages_text}.
-        
-        - Do not include any quotes, numbers, bullet points, or hyphens before any of the comments. The comments should appear as plain text without any formatting symbols.
+        Context:
+        - Current Game Scene ({datetime.now().strftime("%Y-%m-%d %H:%M:%S")}): {description}
+        - Previous Game Scene ({prev_creation_time}): {prev_content}
+        - Recent Stream Chat Messages: {chat_messages_text}
+
+        Generate your comment here:
         """
 
     try:
