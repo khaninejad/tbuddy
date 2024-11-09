@@ -384,7 +384,7 @@ def wait_for_content(driver, timeout=20):
         WebDriverWait(driver, timeout).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "video"))
         )
-        print_info("Content is visible")
+        print_info("Stream is operational")
     except Exception as e:
         print_error("Error while waiting for content", e)
 
@@ -470,7 +470,7 @@ def generate_comments(
     
 
     prompt = f"""
-        Generate a SHORT ({random.randint(2, 30)} words) comment for a Twitch stream in '{stream_language}' for the category '{game_name}'.
+        Generate a SHORT ({random.randint(2, 30)} words) comment or question or tip for a Twitch stream in '{stream_language}' for the category '{game_name}' addressing streamer.
 
         Avoid phrases like "Let’s go," "Let’s," and any similar expressions. Instead, use unique expressions that convey hype without direct calls to action. 
         

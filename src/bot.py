@@ -1,5 +1,6 @@
 import json
 import os
+import signal
 import sys
 import time
 import requests
@@ -23,6 +24,19 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 load_dotenv(override=True)
 user_drivers = {}
+driver = None
+
+def handle_exit_signal(signum, frame):
+    """Handle termination signals and ensure driver quits."""
+    global driver
+    print_info("Received termination signal.")
+    if driver:
+        driver.quit()
+        print_info("Driver closed upon receiving termination signal.")
+    sys.exit(0)  
+
+
+signal.signal(signal.SIGTERM, handle_exit_signal)
 
 
 def get_user_id(username, client_id, access_token):
@@ -128,9 +142,9 @@ def ensure_folders_exist(username):
     base_user_folder = os.path.join("users", username)
     os.makedirs(
         base_user_folder, exist_ok=True
-    )  # Create user folder if it doesn't exist
+    )  
 
-    # Create subfolders for the user
+    
     comments_folder = os.path.join(base_user_folder, "comments")
     screenshots_folder = os.path.join(base_user_folder, "screenshots")
     game_analysis_folder = os.path.join(base_user_folder, "game_analysis")
@@ -176,56 +190,59 @@ def main():
 
     driver = get_chrome_instance(username)
     
-    twitch_login(driver, username, password)
+    try:
+        twitch_login(driver, username, password)
 
-    access_token = get_access_token(
-        driver, username, username
-    )
-    
-    if not access_token or not validate_token(access_token, CLIENT_ID):
-        print_error("Invalid access token. Exiting.")
-        return
+        access_token = get_access_token(
+            driver, username, username
+        )
 
-    broadcaster_id = get_user_id(stream_username, CLIENT_ID, access_token)
-    sender_id = get_user_id(username, CLIENT_ID, access_token)
+        if not access_token or not validate_token(access_token, CLIENT_ID):
+            print_error("Invalid access token. Exiting.")
+            return
 
-    user_folders = ensure_folders_exist(username)
-    print_info(f"Folder structure created for user: {username}")
+        broadcaster_id = get_user_id(stream_username, CLIENT_ID, access_token)
+        sender_id = get_user_id(username, CLIENT_ID, access_token)
 
-    comments_folder = user_folders["comments"]
-    screenshots_folder = user_folders["screenshots"]
-    output_folder = user_folders["game_analysis"]
+        user_folders = ensure_folders_exist(username)
+        print_info(f"Folder structure created for user: {username}")
 
-    
+        comments_folder = user_folders["comments"]
+        screenshots_folder = user_folders["screenshots"]
+        output_folder = user_folders["game_analysis"]
 
-    print_info("Navigating to stream URL")
-    driver.get(stream_url)
-    wait_stream_start = 5
-    countdown_timer(wait_stream_start, "Waiting for stream to start watching...")
-    time.sleep(wait_stream_start)
+        print_info("Navigating to stream URL")
+        driver.get(stream_url)
+        wait_stream_start = 5
+        countdown_timer(wait_stream_start, "Waiting for stream to start watching...")
+        time.sleep(wait_stream_start)
 
-    click_start_watching(driver)
-    toggle_side_nav(driver)
-    accept_cookies(driver)
-    click_captions_button(driver)
+        click_start_watching(driver)
+        toggle_side_nav(driver)
+        accept_cookies(driver)
+        click_captions_button(driver)
 
-    take_screenshots_and_describe(
-        driver,
-        interval,
-        run_duration,
-        screenshots_folder,
-        output_folder,
-        api_key,
-        game_name,
-        comments_folder,
-        broadcaster_id,
-        sender_id,
-        CLIENT_ID,
-        access_token,
-        stream_language,
-        username,
-        assistant_type
-    )
+        take_screenshots_and_describe(
+            driver,
+            interval,
+            run_duration,
+            screenshots_folder,
+            output_folder,
+            api_key,
+            game_name,
+            comments_folder,
+            broadcaster_id,
+            sender_id,
+            CLIENT_ID,
+            access_token,
+            stream_language,
+            username,
+            assistant_type
+        )
+    finally:
+        if driver:
+            driver.quit()
+            print_info("Driver closed")
 
     driver.quit()
 
