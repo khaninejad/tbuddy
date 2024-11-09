@@ -19,7 +19,6 @@ fi
 [[ -f "${DMG_FILE_NAME}" ]] && rm "${DMG_FILE_NAME}"
 
 
-# codesign --options=runtime --force --deep --sign "Payam Khaninejad" dist/tbuddy.app/Contents/MacOS/tbuddy && \
 # Create the DMG
 $CREATE_DMG \
   --codesign "Payam Khaninejad" \
