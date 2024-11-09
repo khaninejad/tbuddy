@@ -91,9 +91,7 @@ def open_auth_url(driver):
     auth_url = generate_auth_url()
     print(auth_url)
     driver.open(auth_url)
-    print("Opening authorization URL:", auth_url)
     final_url = driver.current_url
-    print_info(f"Final URL after auth: {final_url}")
     authorize_client(driver, final_url)
 
 
