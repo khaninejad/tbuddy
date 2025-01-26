@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tbuddy"
-version = "0.1.1"
+version = "1.7.4"
 description = "twitch ai bot"
 authors = ["Payam Khaninejad <khaninejad@gmail.com>"]
 readme = "README.md"
