@@ -5,7 +5,6 @@ from tkinter import messagebox, Toplevel, Frame, ttk
 import json
 from tkinter import filedialog
 import webbrowser
-import sv_ttk
 from bot_operations import BotOperations
 from load_assistant_type import assistants, load_assistant_types
 from __version__ import __version__
@@ -13,6 +12,7 @@ from config import CONFIG_FILE
 from license_manager import LicenseManager
 from update_checker import UpdateChecker
 from utils import clean_folder, print_info
+
 
 
 LICENSED = False
@@ -502,7 +502,6 @@ class BotGUI:
 def start_gui():
     root = tk.Tk()
     root.minsize(400, 300)
-    sv_ttk.set_theme("light")
     BotGUI(root)
     root.mainloop()
 
