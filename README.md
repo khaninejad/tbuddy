@@ -2,6 +2,9 @@
 
 **Tbuddy** is a Twitch bot application designed to monitor streams, watch stream, and analyze data to generate live insights and comments. This application uses OpenAI or other AI models to interpret data, providing real-time responses and feedback. Tbuddy is available in both Free and Premium versions, with different levels of access and functionality.
 
+![Tbuddy](screenshot.png)
+
+
 ## Features
 
 - **Stream Monitoring and Analysis**: watch stream and analyzes Twitch streams to generate comments and insights.

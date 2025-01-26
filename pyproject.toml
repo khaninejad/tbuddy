@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tbuddy"
-version = "0.1.0"
+version = "0.1.1"
 description = "twitch ai bot"
 authors = ["Payam Khaninejad <khaninejad@gmail.com>"]
 readme = "README.md"
@@ -18,7 +18,6 @@ psutil = "^6.1.0"
 pyinstaller = "^6.11.0"
 getmac = "^0.9.5"
 seleniumbase = "^4.31.6"
-sv-ttk = "^2.6.0"
 sounddevice = "^0.5.1"
 soundfile = "^0.12.1"
 numpy = "^2.1.3"
